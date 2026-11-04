@@ -1,0 +1,48 @@
+﻿@page "/login"
+
+<h3>Inicio de Sesi&oacute;n</h3>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow-lg">
+            <div class="card-header">
+                <h4>Acceso a Lock-In</h4>
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(MensajeError))
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @MensajeError
+                    </div>
+                }
+
+                <EditForm Model="Usuario" OnValidSubmit="AutenticarUsuario">
+                    <DataAnnotationsValidator />
+                    @*Usuario*@
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Nombre de Usuario: </strong></label>
+                        <InputText class="form-control" @bind-Value="Usuario"></InputText>
+                        <ValidationMessage For="(() => Usuario)" />
+                    </div>
+                    @*Contraseña*@
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Contrase&ntilde;a: </strong></label>
+                        <InputText class="form-control" type="password" @bind-Value="Usuario"></InputText>
+                    </div>
+                    @*Boton*@
+                    <button type="submit" class="btn btn-primary bi bi-floppy"> Iniciar Sesi&oacute;n</button>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string? MensajeError;
+    private string Usuario = String.Empty;
+    private async Task AutenticarUsuario()
+    {
+        
+    }
+}
+
