@@ -1,5 +1,6 @@
 using Lock_In.Components;
 using Lock_In.Components.Account;
+using Lock_In.Context;
 using Lock_In.Data;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -37,6 +38,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+var ConStr = builder.Configuration.GetConnectionString("ConStr");
+builder.Services.AddDbContextFactory<Contexto>(c => c.UseSqlServer(ConStr));
 
 var app = builder.Build();
 
