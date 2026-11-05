@@ -2,6 +2,7 @@ using Lock_In.Components;
 using Lock_In.Components.Account;
 using Lock_In.Context;
 using Lock_In.Data;
+using Lock_In.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -56,6 +57,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddScoped<RegistroEstudiantesService>();
 
 var app = builder.Build();
 
