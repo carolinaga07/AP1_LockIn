@@ -58,6 +58,7 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddScoped<RegistroEstudiantesService>();
+builder.Services.AddScoped<UsuariosService>();
 
 var app = builder.Build();
 
