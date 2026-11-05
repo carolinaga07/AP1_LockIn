@@ -107,4 +107,11 @@ app.MapRazorComponents<App>()
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
+using (var scope = app.Services.CreateScope())
+{
+    await IdentitySeeder.InicializarAsync(
+        scope.ServiceProvider,
+        app.Configuration);
+}
+
 app.Run();
