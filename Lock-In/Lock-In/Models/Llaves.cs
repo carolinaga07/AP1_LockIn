@@ -6,7 +6,7 @@ namespace Lock_In.Models;
 public class Llaves
 {
     [Key]
-    public int LlaveId { get; set; }
+    public int? LlaveId { get; set; }
 
     public string Numero { get; set; } = string.Empty;
 
