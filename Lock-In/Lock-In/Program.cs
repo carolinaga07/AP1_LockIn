@@ -12,8 +12,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+//Autenticacion
 builder.Services.AddCascadingAuthenticationState();
+
 builder.Services.AddScoped<IdentityRedirectManager>();
+
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
 builder.Services.AddAuthentication(options =>
@@ -23,25 +26,63 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
+//Conexion de Sql Server
 var connectionString = builder.Configuration.GetConnectionString("ConStr") ?? throw new InvalidOperationException("Connection string 'ConStr' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
+//Cconexion con el Contexto
+builder.Services.AddDbContextFactory<Contexto>(options =>
+    options.UseSqlServer(connectionString));
+
+//Roles de Identity
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
     {
-        options.SignIn.RequireConfirmedAccount = true;
+        options.SignIn.RequireConfirmedAccount = false;
+        options.SignIn.RequireConfirmedEmail = false;
+
+        options.Password.RequireDigit = false;
+        options.Password.RequireLowercase = false;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequiredLength = 4;
+        options.Password.RequiredUniqueChars = 1;
+
         options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
     })
-    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<Contexto>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
+builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
-var ConStr = builder.Configuration.GetConnectionString("ConStr");
-builder.Services.AddDbContextFactory<Contexto>(c => c.UseSqlServer(ConStr));
 
 var app = builder.Build();
+
+//Roles
+using(var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    string[] roles =
+    {
+        "Administrador",
+        "Bibliotecario",
+        "Estudiante"
+    };
+
+    foreach(var rol in roles)
+    {
+        if(!await roleManager.RoleExistsAsync(rol))
+        {
+            var resultado = await roleManager.CreateAsync(new IdentityRole(rol));
+
+            if (!resultado.Succeeded)
+            {
+                throw new InvalidOperationException($"No se pudo crear el rol{rol}.");
+            }
+        }
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

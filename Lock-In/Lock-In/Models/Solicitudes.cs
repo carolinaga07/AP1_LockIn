@@ -16,11 +16,12 @@ public class Solicitudes
     public Casilleros Casillero { get; set; } = null!;
     public DateTime FechaSolicitud { get; set; } = DateTime.UtcNow;
     public EstadoSolicitud Estado { get; set; } = EstadoSolicitud.Pendiente;
-    public DateTime? FechaRespuestaq { get; set; }
+    public DateTime? FechaRespuesta { get; set; }
     public string? MotivoRechazo { get; set; }
     public string? RevisadoPorId { get; set; }
     [ForeignKey(nameof(RevisadoPorId))]
     public ApplicationUser? RevisadoPor { get; set; }
+    public Asignaciones? Asignaciones { get; set; }
 
 }
 
