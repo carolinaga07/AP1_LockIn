@@ -1,4 +1,5 @@
-﻿namespace Lock_In.Components.Extentors;
+﻿using BlazorBootstrap;
+namespace Lock_In.Components.Extentors;
 
 public static class ToastServiceExtentions
 {
