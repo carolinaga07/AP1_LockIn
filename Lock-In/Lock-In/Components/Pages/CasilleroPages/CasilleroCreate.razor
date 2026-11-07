@@ -1,7 +1,51 @@
 ﻿@page "/Casilleros/Crear" 
 @inject CasillerosService casillerosService
 @inject NavigationManager navigationManager
+@inject ToastService toastService
 
+<PageTitle>Agregar Casillero</PageTitle>
+<EditForm Model="Casillero" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator/>
+
+    <div class="container">
+        <div class="card shadow-lg">
+            <div class="card-header text-center">
+                <h5 class="card-title">Agregar Casillero</h5>
+            </div>
+
+            <div class="card-body">
+                @*CasilleroId*@
+                <div class="mb-3">
+                    <label class="form-label"><strong>CasilleroId</strong></label>
+                    <InputNumber class="form-control" @bind-Value="Casillero.CasilleroId" readonly></InputNumber>
+                </div>
+                @*Fila*@
+                <div class="mb-3">
+                    <label class="form-label"><strong>Fila</strong></label>
+                    <InputNumber class="form-control" @bind-Value="Casillero.Fila"></InputNumber>
+                </div>
+            </div>
+            @*footer*@
+            <div class="card-footer text-center mt-2">
+                <a href="Casilleros/Index" class="btn btn-secondary"><span class="bi bi-arrow-left"></span> Volver</a>
+                <button type="submit" class="btn btn-primary bi bi-floppy"> Guardar</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
 @code {
+    public Casilleros Casillero { get; set; } = new Casilleros();
 
+    public async Task Guardar()
+    {
+        var result = await casillerosService.Guardar(Casillero);
+
+        result.OnSuccess(() =>
+        {
+            toastService.ShowSuccess("¡Casillero guardado exitosamente!");
+            navigationManager.NavigateTo("/Casilleros/Index");
+        });
+
+        result.OnFailure(() => toastService.ShowError("Error al guardar el casillero."));
+    }
 }
