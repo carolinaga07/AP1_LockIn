@@ -1,0 +1,133 @@
+﻿@page "/administrador/usuarios/editar/{Id}"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Administrador")]
+
+@inject UsuariosService usuariosService
+@inject UserManager<ApplicationUser> UserManager
+@inject ToastService toastService
+@inject NavigationManager navigationManager
+
+<PageTitle>Modificar Usuario</PageTitle>
+
+<EditForm Model="Usuario" OnValidSubmit="Modificar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="container">
+        <div class="card shadow-lg">
+
+            <div class="card-header text-center">
+                <h5 class="card-title">Modificar Usuario</h5>
+            </div>
+
+            <div class="card-body">
+
+                @* Nombre completo *@
+                <div class="mb-3">
+                    <label class="form-label">
+                        <strong>Nombre completo</strong>
+                    </label>
+                    <InputText class="form-control"
+                               @bind-Value="Usuario.NombreCompleto" />
+                    <ValidationMessage For="() => Usuario.NombreCompleto" />
+                </div>
+
+                @* Correo electrónico *@
+                <div class="mb-3">
+                    <label class="form-label">
+                        <strong>Correo electrónico</strong>
+                    </label>
+                    <InputText class="form-control"
+                               @bind-Value="Usuario.Email" />
+                    <ValidationMessage For="() => Usuario.Email" />
+                </div>
+
+                @* Rol *@
+                <div class="mb-3">
+                    <label class="form-label">
+                        <strong>Rol</strong>
+                    </label>
+                    <InputSelect class="form-control form-select"
+                                 @bind-Value="Rol">
+                        <option value="">Elija una opción</option>
+                        <option value="Administrador">Administrador</option>
+                        <option value="Bibliotecario">Bibliotecario</option>
+                        <option value="Estudiante">Estudiante</option>
+                    </InputSelect>
+                </div>
+
+            </div>
+
+            <div class="card-footer text-center mt-2">
+                <a href="/administrador/usuarios"
+                   class="btn btn-secondary">
+                    <span class="bi bi-arrow-left"></span> Volver
+                </a>
+
+                <button type="submit"
+                        class="btn btn-primary bi bi-floppy">
+                    Modificar
+                </button>
+            </div>
+
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+
+    public ApplicationUser Usuario { get; set; } = new();
+
+    public string Rol { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var resultado = await usuariosService.Buscar(Id);
+
+        resultado.OnSuccess(usuario =>
+        {
+            Usuario = usuario ?? new ApplicationUser();
+        });
+
+        if (string.IsNullOrEmpty(Usuario.Id))
+        {
+            toastService.ShowError("No se encontró el usuario.");
+            return;
+        }
+
+        var rolesUsuario = await UserManager.GetRolesAsync(Usuario);
+
+        Rol = rolesUsuario.FirstOrDefault() ?? string.Empty;
+    }
+
+    private async Task Modificar()
+    {
+        if (string.IsNullOrWhiteSpace(Rol))
+        {
+            toastService.ShowError("Debe seleccionar un rol.");
+            return;
+        }
+
+        var resultado = await usuariosService.Modificar(Usuario, Rol);
+
+        resultado.OnSuccess(() =>
+        {
+            if (resultado.IsSuccess)
+            {
+                toastService.ShowSuccess("Usuario modificado correctamente.");
+                navigationManager.NavigateTo("/administrador/usuarios");
+            }
+            else
+            {
+                toastService.ShowError("No se pudo modificar el usuario.");
+            }
+        });
+
+        resultado.OnFailure(() =>
+        {
+            toastService.ShowError("Ocurrió un error al modificar el usuario.");
+        });
+    }
+}

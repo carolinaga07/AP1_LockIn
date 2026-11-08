@@ -55,4 +55,43 @@ public class UsuariosService(UserManager<ApplicationUser> userManager)
     {
         return await userManager.FindByIdAsync(id);
     }
+
+    public async Task<Result> Modificar(ApplicationUser usuario,string rol)
+    {
+        var usuarioExistente = await userManager.FindByIdAsync(usuario.Id);
+
+        if (usuarioExistente is null)
+            return Result.Success(false);
+
+        if (rol != "Administrador" && rol != "Bibliotecario" && rol != "Estudiante")
+            return Result.Success(false);
+
+        usuarioExistente.NombreCompleto = usuario.NombreCompleto;
+        usuarioExistente.Email = usuario.Email;
+        usuarioExistente.UserName = usuario.Email;
+
+        var resultado = await userManager.UpdateAsync(usuarioExistente);
+
+        if (!resultado.Succeeded)
+            return Result.Success(false);
+
+        var rolesActuales = await userManager.GetRolesAsync(usuarioExistente);
+
+        if (!rolesActuales.Contains(rol))
+        {
+            var eliminacion = await userManager.RemoveFromRolesAsync(
+                usuarioExistente, rolesActuales);
+
+            if (!eliminacion.Succeeded)
+                return Result.Success(false);
+
+            var asignacion = await userManager.AddToRoleAsync(
+                usuarioExistente, rol);
+
+            if (!asignacion.Succeeded)
+                return Result.Success(false);
+        }
+
+        return Result.Success(true);
+    }
 }

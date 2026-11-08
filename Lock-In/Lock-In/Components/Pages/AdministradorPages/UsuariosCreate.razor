@@ -1,11 +1,6 @@
 ﻿@page "/administrador/usuarios/crear"
 @rendermode InteractiveServer
 @attribute [Authorize(Roles = "Administrador")]
-
-@using System.ComponentModel.DataAnnotations
-@using Microsoft.AspNetCore.Authorization
-@using Lock_In.Services
-
 @inject UsuariosService usuariosService
 @inject NavigationManager Navigation
 @inject ToastService toastService
@@ -91,14 +86,19 @@
 </EditForm>
 
 @code {
-    public ApplicationUser Usuario { get; set; } = new();
-
-    public string Password { get; set; } = string.Empty;
-    public string ConfirmPassword { get; set; } = string.Empty;
-    public string Rol { get; set; } = string.Empty;
+    private ApplicationUser Usuario { get; set; } = new();
+    private string Password { get; set; } = string.Empty;
+    private string ConfirmPassword { get; set; } = string.Empty;
+    private string Rol { get; set; } = string.Empty;
 
     private async Task Guardar()
     {
+        if (string.IsNullOrWhiteSpace(Password))
+        {
+            toastService.ShowError("La contraseña es obligatoria.");
+            return;
+        }
+
         if (Password != ConfirmPassword)
         {
             toastService.ShowError("Las contraseñas no coinciden.");
@@ -117,9 +117,9 @@
             Password,
             Rol);
 
-        Action value = creado =>
+        resultado.OnSuccess(() =>
         {
-            if (creado)
+            if (resultado.IsSuccess)
             {
                 toastService.ShowSuccess("Usuario registrado correctamente");
                 Navigation.NavigateTo("/administrador/usuarios");
@@ -128,8 +128,7 @@
             {
                 toastService.ShowError("No se pudo registrar el usuario.");
             }
-        };
-        resultado.OnSuccess(value);
+        });
 
         resultado.OnFailure(() =>
         {
