@@ -1,5 +1,140 @@
-﻿<h3>UsuariosCreate</h3>
+﻿@page "/administrador/usuarios/crear"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Administrador")]
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authorization
+@using Lock_In.Services
+
+@inject UsuariosService usuariosService
+@inject NavigationManager Navigation
+@inject ToastService toastService
+
+<PageTitle>Crear Usuario</PageTitle>
+
+<EditForm Model="Usuario" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+
+    <div class="container">
+        <div class="card shadow-lg">
+
+            <div class="card-header text-center">
+                <h5 class="card-title">Crear Usuario</h5>
+            </div>
+
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        <strong>Nombre completo</strong>
+                    </label>
+                    <InputText class="form-control"
+                               @bind-Value="Usuario.NombreCompleto" />
+                    <ValidationMessage For="() => Usuario.NombreCompleto" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        <strong>Correo electrónico</strong>
+                    </label>
+                    <InputText class="form-control"
+                               @bind-Value="Usuario.Email" />
+                    <ValidationMessage For="() => Usuario.Email" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        <strong>Contraseña</strong>
+                    </label>
+                    <InputText type="password"
+                               class="form-control"
+                               @bind-Value="Password" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        <strong>Confirmar contraseña</strong>
+                    </label>
+                    <InputText type="password"
+                               class="form-control"
+                               @bind-Value="ConfirmPassword" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        <strong>Rol</strong>
+                    </label>
+                    <InputSelect class="form-control form-select"
+                                 @bind-Value="Rol">
+                        <option value="">Elija una opción</option>
+                        <option value="Bibliotecario">Bibliotecario</option>
+                        <option value="Administrador">Administrador</option>
+                    </InputSelect>
+                </div>
+
+            </div>
+
+            <div class="card-footer text-center">
+                <a href="/administrador/usuarios"
+                   class="btn btn-secondary bi bi-arrow-left">
+                    Volver
+                </a>
+
+                <button type="submit"
+                        class="btn btn-primary bi bi-floppy">
+                    Guardar
+                </button>
+            </div>
+
+        </div>
+    </div>
+</EditForm>
 
 @code {
+    public ApplicationUser Usuario { get; set; } = new();
+
+    public string Password { get; set; } = string.Empty;
+    public string ConfirmPassword { get; set; } = string.Empty;
+    public string Rol { get; set; } = string.Empty;
+
+    private async Task Guardar()
+    {
+        if (Password != ConfirmPassword)
+        {
+            toastService.ShowError("Las contraseñas no coinciden.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(Rol))
+        {
+            toastService.ShowError("Debe seleccionar un rol.");
+            return;
+        }
+
+        var resultado = await usuariosService.CrearUsuario(
+            Usuario.NombreCompleto,
+            Usuario.Email!,
+            Password,
+            Rol);
+
+        Action value = creado =>
+        {
+            if (creado)
+            {
+                toastService.ShowSuccess("Usuario registrado correctamente");
+                Navigation.NavigateTo("/administrador/usuarios");
+            }
+            else
+            {
+                toastService.ShowError("No se pudo registrar el usuario.");
+            }
+        };
+        resultado.OnSuccess(value);
+
+        resultado.OnFailure(() =>
+        {
+            toastService.ShowError("Ocurrió un error al registrar el usuario.");
+        });
+    }
 
 }
