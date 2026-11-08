@@ -44,8 +44,8 @@
                     </div>
                 </div>
             </div>
-
-            <QuickGrid Items="ListaUsuarios.AsQueryable()" Class="table table-hover text-center mt-3">
+            <QuickGrid Items="ListaUsuarios.AsQueryable()"
+                       Class="table table-hover text-center mt-3">
 
                 <PropertyColumn Property="u => u.NombreCompleto"
                                 Title="Nombre"
@@ -57,6 +57,12 @@
 
                 <TemplateColumn Title="Rol">
                     @roles.GetValueOrDefault(context.Id, "Sin rol")
+                </TemplateColumn>
+
+                <TemplateColumn Title="Opciones">
+                    <a href="/administrador/usuarios/editar/@context.Id"
+                       class="btn btn-outline-primary bi bi-pencil-square">
+                    </a>
                 </TemplateColumn>
 
             </QuickGrid>
