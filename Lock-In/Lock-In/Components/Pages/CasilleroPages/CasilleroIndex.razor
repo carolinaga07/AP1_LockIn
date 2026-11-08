@@ -1,0 +1,93 @@
+﻿@page "/Casilleros/Index"
+@inject CasillerosService casillerosService
+@inject ToastService toastService
+
+<PageTitle>Index de Casilleros</PageTitle>
+<div class="container">
+    <div class="card shadow-lg">
+        <div class="card-header d-flex justify-content-between align-content-center mb-4">
+            <h5 class="card-title">Registro de Casilleros</h5>
+            <a href="Casilleros/Create" class="btn btn-primary"><span class="bi bi-plus-square">Nuevo Casillero</span></a>
+        </div>
+
+        <div class="card-body">
+            @*labels*@
+            <div class="row">
+
+                @*filtar*@
+                <div class="col-3">
+                    <label class="col-form-label"><strong>Filtrar por</strong></label>
+                </div>
+
+                @*valor filtro*@
+                <div class="col-4">
+                    <label class="col-form-label"><strong>B&uacute;squeda</strong></label>
+                </div>
+            </div>
+
+            @*inputs y botones*@
+            <div class="row align-items-center">
+                @*filtro*@
+                <div class="col-3">
+                    <InputSelect class="form-select" @bind-Value="Filtro">
+                        <option value="" selected disabled>Elija una opci&oacute;n</option>
+                        <option value="Id">ID</option>
+                        <option value="Fila">Fila</option>
+                    </InputSelect>
+                </div>
+                @*Busqueda*@
+                <div class="col-4">
+                    <div class="input-group">
+                        <input class="form-control" @bind="ValorFiltro" placeholder="Buscar" />
+                        <button type="button" class="btn btn-outline-primary bi bi-search" @onclick="Buscar"></button>
+                    </div>
+                </div>
+             </div>
+            <div class="grid mt-2">
+                <QuickGrid Items="@itemsQueryable">
+                    <PropertyColumn Property="@(c => c.CasilleroId)" Sortable="true" />
+                    <PropertyColumn Property="@(c => c.Fila)" Sortable="true" />
+                    <PropertyColumn Property="@(c => c.Estado)" Sortable="true" />
+                    <PropertyColumn Property="@(c => c.LlaveDisponible)" Sortable="true" />
+
+
+                    <TemplateColumn Title="Opciones">
+                        <a href="/Casilleros/Modificar/@context.CasilleroId" class="btn btn-outline-primary bi bi-pencil-square"></a>
+                    </TemplateColumn>
+                </QuickGrid>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-between align-center mb-4">
+            <label class="ms-3"><strong>Cantidad: </strong>@itemsQueryable?.Count()</label>
+        </div>
+    </div>
+</div>
+
+@code {
+    private IQueryable<Casilleros> itemsQueryable;
+    public string Filtro { get; set; } = string.Empty;
+    public string ValorFiltro { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await casillerosService.GetList(c => c.CasilleroId > 0);
+        itemsQueryable = result.Value.AsQueryable();
+    }
+
+    private async Task Buscar()
+    {
+        if (Filtro == "ID")
+        {
+            int idBuscado = int.Parse(ValorFiltro);
+            var result= await casillerosService.GetList(c => c.CasilleroId == idBuscado);
+            itemsQueryable = result.Value.AsQueryable();
+        }
+        else if (Filtro == "Fila")
+        {
+            int filaBuscada = int.Parse(ValorFiltro);
+            var result = await casillerosService.GetList(c => c.Fila == filaBuscada);
+            itemsQueryable = result.Value.AsQueryable();
+        }
+    }
+
+}

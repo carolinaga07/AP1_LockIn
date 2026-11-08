@@ -12,6 +12,8 @@
 
   <ItemGroup>
     <PackageReference Include="Aplicada1.Core" Version="1.1.0" />
+    <PackageReference Include="Blazor.Bootstrap" Version="4.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="10.0.14" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.14" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.14" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.14" />

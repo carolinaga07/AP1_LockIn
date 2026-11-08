@@ -1,0 +1,94 @@
+﻿@page "/Casilleros/Editar/{CasilleroId:int}"
+@inject CasillerosService casillerosService
+@inject NavigationManager navigationManager
+@inject ToastService toastService
+
+<PageTitle>Editar Casillero</PageTitle>
+<EditForm Model="Casillero" OnValidSubmit="Modificar">
+    <DataAnnotationsValidator />
+
+    <div class="container">
+        <div class="card shadow-lg">
+            <div class="card-header text-center">
+                <h5 class="card-title">Editar Casillero</h5>
+            </div>
+
+            <div class="card-body">
+                @*CasilleroId*@
+                <div class="mb-3">
+                    <label class="form-label"><strong>CasilleroId</strong></label>
+                    <InputNumber class="form-control" @bind-Value="Casillero.CasilleroId" readonly></InputNumber>
+                </div>
+                @*Fila*@
+                <div class="mb-3">
+                    <label class="form-label"><strong>Fila</strong></label>
+                    <InputNumber class="form-control" @bind-Value="Casillero.Fila"></InputNumber>
+                </div>
+                @*Estado*@
+                <div class="mb-3">
+                    <label class="form-label"><strong>Estado</strong></label>
+                    <InputSelect class="form-control" @bind-Value="Casillero.Estado">
+                        <option value="" disabled selected> -- Seleccione un estado --</option>
+                        <option value="Disponible">Disponible</option>
+                        <option value="Ocupado">Ocupado</option>
+                        <option value="Inaccesible">Inaccesible</option>
+                    </InputSelect>
+                </div>
+
+                @if (Casillero.Estado.Equals(EstadoCasillero.Inaccesible))
+                {
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Motivo de Inaccesibilidad</strong></label>
+                        <InputSelect class="form-control" @bind-Value="Casillero.MotivoInaccesibilidad" @bind-Value:after="OnMotivoCambio">
+                            <option value="" disabled selected> -- Seleccione un motivo de inaccesibilidad --</option>
+                            <option value="Mantenimiento">Mantenimiento</option>
+                            <option value="Llave Pérdida">Llave p&eacute;rdida</option>
+                        </InputSelect>
+                    </div>
+                }
+            </div>
+            @*footer*@
+            <div class="card-footer text-center mt-2">
+                <a href="Casilleros/Index" class="btn btn-secondary"><span class="bi bi-arrow-left"></span> Volver</a>
+                <button type="submit" class="btn btn-primary bi bi-floppy"> Guardar</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    public int CasilleroId { get; set; }
+    public Casilleros Casillero { get; set; } = new Casilleros();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await casillerosService.Buscar(CasilleroId);
+        Casillero = result.Value;
+    }
+
+    public async Task Modificar()
+    {
+        var result = await casillerosService.Guardar(Casillero);
+
+        result.OnSuccess(() =>
+         {
+             toastService.ShowSuccess("¡Casillero modificado exitosamente!");
+             navigationManager.NavigateTo("/Casilleros/Index");
+         });
+
+        result.OnFailure(() => toastService.ShowError("Error al modificar el casillero."));
+    }
+
+    private void OnMotivoCambio()
+    {
+        if (Casillero.MotivoInaccesibilidad == "Llave Pérdida")
+        {
+            Casillero.LlaveDisponible = false;
+        }
+        else
+        {
+            Casillero.LlaveDisponible = true;
+        }
+    }
+}
