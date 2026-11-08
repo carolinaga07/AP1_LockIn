@@ -1,4 +1,4 @@
-﻿@page "/Casilleros/Editar/{CasilleroId:int}"
+﻿@page "/Casilleros/Edit/{CasilleroId:int}"
 @inject CasillerosService casillerosService
 @inject NavigationManager navigationManager
 @inject ToastService toastService
@@ -58,6 +58,7 @@
 </EditForm>
 
 @code {
+    [Parameter]
     public int CasilleroId { get; set; }
     public Casilleros Casillero { get; set; } = new Casilleros();
 
