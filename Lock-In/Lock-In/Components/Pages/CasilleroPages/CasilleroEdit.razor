@@ -58,11 +58,26 @@
 </EditForm>
 
 @code {
+    public int CasilleroId { get; set; }
     public Casilleros Casillero { get; set; } = new Casilleros();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await casillerosService.Buscar(CasilleroId);
+        Casillero = result.Value;
+    }
 
     public async Task Modificar()
     {
-        
+        var result = await casillerosService.Guardar(Casillero);
+
+        result.OnSuccess(() =>
+         {
+             toastService.ShowSuccess("¡Casillero modificado exitosamente!");
+             navigationManager.NavigateTo("/Casilleros/Index");
+         });
+
+        result.OnFailure(() => toastService.ShowError("Error al modificar el casillero."));
     }
 
     private void OnMotivoCambio()
