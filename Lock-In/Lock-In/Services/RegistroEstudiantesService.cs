@@ -42,8 +42,14 @@ public class RegistroEstudiantesService(
 
         if (!resultado.Succeeded)
         {
-            return (false, string.Join(", ",
-                resultado.Errors.Select(e => e.Description)));
+            string mensaje = "";
+
+            foreach (var error in resultado.Errors)
+            {
+                mensaje += error.Description + " ";
+            }
+
+            return (false, mensaje.Trim());
         }
 
         var resultadoRol = await userManager.AddToRoleAsync(
@@ -51,8 +57,14 @@ public class RegistroEstudiantesService(
 
         if (!resultadoRol.Succeeded)
         {
-            return (false, string.Join(", ",
-                resultadoRol.Errors.Select(e => e.Description)));
+            string mensaje = "";
+
+            foreach (var error in resultadoRol.Errors)
+            {
+                mensaje += error.Description + " ";
+            }
+
+            return (false, mensaje.Trim());
         }
 
         contexto.Estudiantes.Add(new Estudiantes
