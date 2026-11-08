@@ -17,7 +17,7 @@
 </head>
 
 <body>
-    <Routes @rendermode="InteractiveServer" />
+    <Routes @rendermode="RenderModeForPage" />
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="@Assets["Components/Account/Shared/PasskeySubmit.razor.js"]" type="module"></script>
@@ -26,3 +26,13 @@
 </body>
 
 </html>
+
+@code {
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+
+    private IComponentRenderMode? RenderModeForPage =>
+        HttpContext?.Request.Path.StartsWithSegments("/Account") == true
+            ? null
+            : InteractiveServer;
+}
