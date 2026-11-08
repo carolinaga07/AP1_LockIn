@@ -48,8 +48,9 @@
                     <PropertyColumn Property="@(c => c.CasilleroId)" Sortable="true" />
                     <PropertyColumn Property="@(c => c.Fila)" Sortable="true" />
                     <PropertyColumn Property="@(c => c.Estado)" Sortable="true" />
-                    <PropertyColumn Property="@(c => c.LlaveDisponible)" Title ="Llave" Sortable="true" />
-
+                    <TemplateColumn Title="Llave" Sortable="true">
+                        @(context.LlaveDisponible ? "Disponible" : "No disponible")
+                    </TemplateColumn>
 
                     <TemplateColumn Title="Opciones">
                         <a href="/Casilleros/Edit/@context.CasilleroId" class="btn btn-outline-primary bi bi-pencil-square"></a>

@@ -27,7 +27,7 @@
                 @*Estado*@
                 <div class="mb-3">
                     <label class="form-label"><strong>Estado</strong></label>
-                    <InputSelect class="form-control" @bind-Value="Casillero.Estado">
+                    <InputSelect class="form-control" @bind-Value="Casillero.Estado" @bind-Value:after="OnEstadoCambio">
                         <option value="" disabled selected> -- Seleccione un estado --</option>
                         <option value="Disponible">Disponible</option>
                         <option value="Ocupado">Ocupado</option>
@@ -90,6 +90,19 @@
         else
         {
             Casillero.LlaveDisponible = true;
+        }
+    }
+
+    private void OnEstadoCambio()
+    {
+        if (Casillero.Estado.Equals(EstadoCasillero.Disponible))
+        {
+            Casillero.LlaveDisponible = true;
+            Casillero.MotivoInaccesibilidad = string.Empty;
+        }
+        else if (Casillero.Estado.Equals(EstadoCasillero.Ocupado))
+        {
+            Casillero.MotivoInaccesibilidad = string.Empty;
         }
     }
 }
