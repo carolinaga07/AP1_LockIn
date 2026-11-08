@@ -149,11 +149,11 @@ namespace Lock_In.Migrations
                     b.Property<int>("Fila")
                         .HasColumnType("int");
 
+                    b.Property<bool>("LlaveDisponible")
+                        .HasColumnType("bit");
+
                     b.Property<string>("MotivoInaccesibilidad")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Numero")
-                        .HasColumnType("int");
 
                     b.HasKey("CasilleroId");
 
@@ -547,7 +547,7 @@ namespace Lock_In.Migrations
             modelBuilder.Entity("Lock_In.Models.Llaves", b =>
                 {
                     b.HasOne("Lock_In.Models.Casilleros", "Casillero")
-                        .WithMany("Llaves")
+                        .WithMany()
                         .HasForeignKey("CasilleroId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -713,8 +713,6 @@ namespace Lock_In.Migrations
             modelBuilder.Entity("Lock_In.Models.Casilleros", b =>
                 {
                     b.Navigation("Asignaciones");
-
-                    b.Navigation("Llaves");
 
                     b.Navigation("Solicitudes");
                 });
