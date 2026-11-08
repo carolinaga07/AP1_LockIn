@@ -1,0 +1,340 @@
+﻿
+/* =========================================
+   LOCK-IN - INICIO DE SESIÓN
+   ========================================= */
+
+/* Fondo de casilleros */
+
+.login-container {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url('/images/lockin-login-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding: 20px;
+}
+
+/* Tarjeta principal */
+
+.login-card {
+    width: 100%;
+    max-width: 430px;
+    background-color: #fffaf8;
+    padding: 20px 28px;
+    border-radius: 32px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.18);
+    transform: translateY(75px);
+}
+
+/* =========================================
+   ENCABEZADO Y LOGOTIPO
+   ========================================= */
+
+.login-header {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.login-logo {
+    font-size: 40px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.logo-blue {
+    color: #3e49aa;
+}
+
+.logo-red {
+    color: #b73535;
+}
+
+.logo-yellow {
+    color: #f0b45d;
+}
+
+.logo-light {
+    color: #a9c3df;
+}
+
+.login-header h5 {
+    color: #424bb9;
+    font-size: 19px;
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
+/* =========================================
+   CAMPOS DEL FORMULARIO
+   ========================================= */
+
+.login-card .form-label {
+    font-size: 16px;
+    font-weight: 700;
+    color: #171717;
+    margin-bottom: 6px;
+}
+
+.login-card .form-control {
+    width: 100%;
+    height: 48px;
+    border: 1px solid #d5d6e0;
+    border-radius: 13px;
+    background-color: #ffffff;
+    font-size: 16px;
+    padding: 10px 15px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .login-card .form-control:focus {
+        border-color: #4c50cd;
+        box-shadow: 0 0 0 3px rgba(76, 80, 205, 0.12);
+        outline: none;
+    }
+
+    .login-card .form-control::placeholder {
+        color: #9296a3;
+    }
+
+/* Mensajes de validación */
+
+.login-card .text-danger {
+    font-size: 13px;
+}
+
+.login-card .validation-message {
+    display: block;
+    margin-top: 5px;
+}
+
+/* =========================================
+   RECORDARME Y RECUPERAR CONTRASEÑA
+   ========================================= */
+
+.login-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0 20px;
+    font-size: 14px;
+}
+
+    .login-options .form-check-label {
+        display: flex;
+        align-items: center;
+        color: #333333;
+        cursor: pointer;
+    }
+
+    .login-options .form-check-input {
+        margin-top: 0;
+        cursor: pointer;
+    }
+
+        .login-options .form-check-input:checked {
+            background-color: #4c50cd;
+            border-color: #4c50cd;
+        }
+
+    .login-options a {
+        color: #414bd0;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+        .login-options a:hover {
+            text-decoration: underline;
+        }
+
+/* =========================================
+   BOTÓN DE INICIO DE SESIÓN
+   ========================================= */
+
+.login-button {
+    width: 100%;
+    height: 54px;
+    background-color: #4c50cd;
+    color: #ffffff;
+    border: none;
+    border-radius: 14px;
+    font-size: 18px;
+    font-weight: 700;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+    .login-button:hover {
+        background-color: #3d42b5;
+        color: #ffffff;
+    }
+
+    .login-button:active {
+        transform: scale(0.99);
+    }
+
+    .login-button:focus-visible {
+        outline: 3px solid #a9c3df;
+        outline-offset: 3px;
+    }
+
+/* =========================================
+   SEPARADOR
+   ========================================= */
+
+.login-divider {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 18px 0;
+    color: #777777;
+    font-size: 14px;
+}
+
+    .login-divider::before,
+    .login-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background-color: #aeb1c0;
+    }
+
+/* =========================================
+   BOTÓN PASSKEY
+   ========================================= */
+
+.login-card .btn-outline-secondary {
+    min-height: 49px;
+    border: 1px solid #c8cad9;
+    border-radius: 13px;
+    background-color: transparent;
+    color: #333333;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+    .login-card .btn-outline-secondary:hover {
+        background-color: #f0f0ff;
+        border-color: #4c50cd;
+        color: #4c50cd;
+    }
+
+/* =========================================
+   ENLACE DE REGISTRO
+   ========================================= */
+
+.register-section {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 15px;
+    color: #222222;
+}
+
+    .register-section p {
+        margin-bottom: 0;
+    }
+
+    .register-section a {
+        color: #414bd0;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+        .register-section a:hover {
+            text-decoration: underline;
+        }
+
+/* =========================================
+   DISEÑO RESPONSIVO
+   ========================================= */
+
+/* Pantallas medianas */
+
+@media (max-width: 992px) {
+    .login-card {
+        max-width: 470px;
+        padding: 28px 32px;
+        transform: translateY(45px);
+    }
+
+    .login-logo {
+        font-size: 40px;
+    }
+
+    .login-header h5 {
+        font-size: 17px;
+    }
+}
+
+/* Tablets y móviles */
+
+@media (max-width: 768px) {
+    .login-container {
+        min-height: 100vh;
+        padding: 20px 12px;
+        background-position: center;
+    }
+
+    .login-card {
+        max-width: 440px;
+        padding: 28px 25px;
+        border-radius: 28px;
+        transform: none;
+    }
+
+    .login-logo {
+        font-size: 36px;
+    }
+
+    .login-header h5 {
+        font-size: 15px;
+    }
+
+    .login-options {
+        flex-wrap: wrap;
+    }
+}
+
+/* Teléfonos pequeños */
+
+@media (max-width: 480px) {
+    .login-container {
+        padding: 15px 10px;
+    }
+
+    .login-card {
+        padding: 25px 20px;
+        border-radius: 24px;
+    }
+
+    .login-logo {
+        font-size: 32px;
+    }
+
+    .login-header h5 {
+        font-size: 14px;
+    }
+
+    .login-card .form-label {
+        font-size: 14px;
+    }
+
+    .login-card .form-control {
+        height: 45px;
+        font-size: 14px;
+    }
+
+    .login-button {
+        height: 48px;
+        font-size: 16px;
+    }
+
+    .register-section {
+        font-size: 13px;
+    }
+}
