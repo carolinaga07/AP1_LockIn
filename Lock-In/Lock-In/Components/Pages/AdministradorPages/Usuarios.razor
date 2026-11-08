@@ -101,26 +101,7 @@
             ListaUsuarios = lista.ToList();
         });
 
-        roles.Clear();
-
-        foreach (var usuario in TodosUsuarios)
-        {
-            var rolesUsuario = await UserManager.GetRolesAsync(usuario);
-
-            string nombreRoles = "";
-
-            foreach (var rol in rolesUsuario)
-            {
-                if (nombreRoles != "")
-                {
-                    nombreRoles += ", ";
-                }
-
-                nombreRoles += rol;
-            }
-
-            roles[usuario.Id] = nombreRoles;
-        }
+        roles = await UsuariosService.ObtenerRoles();
     }
 
     private void Buscar()

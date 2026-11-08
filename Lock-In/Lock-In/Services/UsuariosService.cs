@@ -1,11 +1,12 @@
 ﻿using Aplicada1.Core;
+using Lock_In.Context;
 using Lock_In.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Lock_In.Services;
 
-public class UsuariosService(UserManager<ApplicationUser> userManager)
+public class UsuariosService(UserManager<ApplicationUser> userManager, IDbContextFactory<Contexto> contextFactory)
 {
     public async Task<Result> CrearUsuario(
         string nombre,
@@ -44,7 +45,10 @@ public class UsuariosService(UserManager<ApplicationUser> userManager)
 
     public async Task<Result<List<ApplicationUser>>> GetList()
     {
-        var usuarios = await userManager.Users
+        await using var contexto =
+            await contextFactory.CreateDbContextAsync();
+
+        var usuarios = await contexto.Users
             .AsNoTracking()
             .ToListAsync();
 
@@ -93,5 +97,36 @@ public class UsuariosService(UserManager<ApplicationUser> userManager)
         }
 
         return Result.Success(true);
+    }
+
+    public async Task<Dictionary<string, string>> ObtenerRoles()
+    {
+        await using var contexto =
+            await contextFactory.CreateDbContextAsync();
+
+        var usuariosRoles = await contexto.UserRoles.ToListAsync();
+        var listaRoles = await contexto.Roles.ToListAsync();
+
+        var roles = new Dictionary<string, string>();
+
+        foreach (var usuarioRol in usuariosRoles)
+        {
+            foreach (var rol in listaRoles)
+            {
+                if (usuarioRol.RoleId == rol.Id)
+                {
+                    if (!roles.ContainsKey(usuarioRol.UserId))
+                    {
+                        roles[usuarioRol.UserId] = rol.Name ?? "";
+                    }
+                    else
+                    {
+                        roles[usuarioRol.UserId] += ", " + rol.Name;
+                    }
+                }
+            }
+        }
+
+        return roles;
     }
 }
