@@ -7,7 +7,7 @@
     <div class="card shadow-lg">
         <div class="card-header d-flex justify-content-between align-content-center mb-4">
             <h5 class="card-title">Registro de Casilleros</h5>
-            <a href="Casilleros/Create" class="btn btn-primary"><span class="bi bi-plus-square">Nuevo Casillero</span></a>
+            <a href="Casilleros/Create" class="btn btn-primary"><span class="bi bi-plus-square"> Nuevo Casillero</span></a>
         </div>
 
         <div class="card-body">
@@ -48,11 +48,11 @@
                     <PropertyColumn Property="@(c => c.CasilleroId)" Sortable="true" />
                     <PropertyColumn Property="@(c => c.Fila)" Sortable="true" />
                     <PropertyColumn Property="@(c => c.Estado)" Sortable="true" />
-                    <PropertyColumn Property="@(c => c.LlaveDisponible)" Sortable="true" />
+                    <PropertyColumn Property="@(c => c.LlaveDisponible)" Title ="Llave" Sortable="true" />
 
 
                     <TemplateColumn Title="Opciones">
-                        <a href="/Casilleros/Modificar/@context.CasilleroId" class="btn btn-outline-primary bi bi-pencil-square"></a>
+                        <a href="/Casilleros/Edit/@context.CasilleroId" class="btn btn-outline-primary bi bi-pencil-square"></a>
                     </TemplateColumn>
                 </QuickGrid>
             </div>
