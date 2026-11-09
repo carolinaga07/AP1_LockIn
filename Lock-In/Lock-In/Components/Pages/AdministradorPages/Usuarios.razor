@@ -1,5 +1,135 @@
-﻿<h3>Usuarios</h3>
+﻿@page "/administrador/usuarios"
+
+@attribute [Authorize(Roles = "Administrador")]
+@rendermode InteractiveServer
+@inject UsuariosService UsuariosService
+@inject UserManager<ApplicationUser> UserManager
+
+<PageTitle>Gestión de usuarios</PageTitle>
+
+<div class="container">
+    <div class="card shadow-lg">
+
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Gestión de Usuarios</h5>
+
+            <a href="/administrador/usuarios/crear"
+               class="btn btn-primary bi bi-plus-square">
+                Crear Usuario
+            </a>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row align-items-center">
+                <div class="col-3">
+                    <InputSelect class="form-select" @bind-Value="Filtro">
+                        <option value="">Elija una opción</option>
+                        <option value="Nombre">Nombre</option>
+                        <Component />
+                        <option value="Rol">Rol</option>
+                    </InputSelect>
+                </div>
+
+                <div class="col-4">
+                    <div class="input-group">
+                        <input class="form-control"
+                               @bind="ValorFiltro"
+                               placeholder="Buscar usuario" />
+
+                        <button type="button"
+                                class="btn btn-outline-primary bi bi-search"
+                                @onclick="Buscar">
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <QuickGrid Items="ListaUsuarios.AsQueryable()"
+                       Class="table table-hover text-center mt-3">
+
+                <PropertyColumn Property="u => u.NombreCompleto"
+                                Title="Nombre"
+                                Sortable="true" />
+
+                <PropertyColumn Property="u => u.Email"
+                                Title="Correo"
+                                Sortable="true" />
+
+                <TemplateColumn Title="Rol">
+                    @roles.GetValueOrDefault(context.Id, "Sin rol")
+                </TemplateColumn>
+
+                <TemplateColumn Title="Opciones">
+                    <a href="/administrador/usuarios/editar/@context.Id"
+                       class="btn btn-outline-primary bi bi-pencil-square">
+                    </a>
+                </TemplateColumn>
+
+            </QuickGrid>
+
+        </div>
+
+        <div class="card-footer d-flex justify-content-between">
+            <label>Cantidad: @ListaUsuarios.Count</label>
+        </div>
+
+    </div>
+</div>
 
 @code {
+    public string Filtro { get; set; } = string.Empty;
+    public string ValorFiltro { get; set; } = string.Empty;
 
+    public List<ApplicationUser> ListaUsuarios { get; set; } = new();
+
+    private List<ApplicationUser> TodosUsuarios = new();
+
+    private Dictionary<string, string> roles = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarUsuarios();
+    }
+
+    private async Task CargarUsuarios()
+    {
+        var resultado = await UsuariosService.GetList();
+
+        resultado.OnSuccess(lista =>
+        {
+            TodosUsuarios = lista;
+            ListaUsuarios = lista.ToList();
+        });
+
+        roles = await UsuariosService.ObtenerRoles();
+    }
+
+    private void Buscar()
+    {
+        if (Filtro == "Nombre")
+        {
+            ListaUsuarios = TodosUsuarios
+                .Where(u => (u.NombreCompleto ?? "").ToLower()
+                    .Contains(ValorFiltro.ToLower()))
+                .ToList();
+        }
+        else if (Filtro == "Correo")
+        {
+            ListaUsuarios = TodosUsuarios
+                .Where(u => (u.Email ?? "").ToLower()
+                    .Contains(ValorFiltro.ToLower()))
+                .ToList();
+        }
+        else if (Filtro == "Rol")
+        {
+            ListaUsuarios = TodosUsuarios
+                .Where(u => roles.GetValueOrDefault(u.Id, "").ToLower()
+                    .Contains(ValorFiltro.ToLower()))
+                .ToList();
+        }
+        else
+        {
+            ListaUsuarios = TodosUsuarios.ToList();
+        }
+    }
 }

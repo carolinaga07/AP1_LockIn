@@ -1,0 +1,239 @@
+
+/* =========================================
+   LOCK-IN - REGISTRO DE ESTUDIANTES
+   ========================================= */
+
+.register-container {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url('/images/lockin-login-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding: 20px;
+}
+
+/* Tarjeta */
+
+.register-card {
+    width: 100%;
+    max-width: 460px;
+    background-color: #fffaf8;
+    padding: 25px 25px;
+    border-radius: 32px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.18);
+    transform: translateY(75px);
+}
+
+/* Encabezado */
+
+.register-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.register-logo {
+    font-size: 40px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    line-height: 1.2;
+    margin-bottom: 5px;
+}
+
+.logo-blue {
+    color: #3e49aa;
+}
+
+.logo-red {
+    color: #b73535;
+}
+
+.logo-yellow {
+    color: #f0b45d;
+}
+
+.logo-light {
+    color: #a9c3df;
+}
+
+.register-header h5 {
+    color: #424bb9;
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.register-header p {
+    color: #666666;
+    font-size: 13px;
+    margin-bottom: 0;
+}
+
+/* Campos */
+
+.register-card .form-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #171717;
+    margin-bottom: 5px;
+}
+
+.register-card .form-control {
+    width: 100%;
+    height: 43px;
+    border: 1px solid #d5d6e0;
+    border-radius: 10px;
+    background-color: #ffffff;
+    font-size: 13px;
+    padding: 9px 12px;
+}
+
+    .register-card .form-control:focus {
+        border-color: #4c50cd;
+        box-shadow: 0 0 0 3px rgba(76, 80, 205, 0.12);
+        outline: none;
+    }
+
+    .register-card .form-control::placeholder {
+        color: #9296a3;
+    }
+
+/* Validaciones */
+
+.register-card .text-danger {
+    font-size: 12px;
+}
+
+.register-card .validation-message {
+    display: block;
+    margin-top: 4px;
+}
+
+/* Botón */
+
+.register-button {
+    background-color: #4c50cd;
+    color: white;
+    height: 48px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+    .register-button:hover {
+        background-color: #3d42b5;
+        color: white;
+    }
+
+/* Enlace al login */
+
+.register-login-link {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 13px;
+    color: #333333;
+}
+
+    .register-login-link a {
+        color: #414bd0;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+        .register-login-link a:hover {
+            text-decoration: underline;
+        }
+
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+
+@media (max-width: 992px) {
+    .register-card {
+        max-width: 480px;
+        transform: translateY(45px);
+    }
+}
+
+@media (max-width: 768px) {
+    .register-container {
+        padding: 20px 12px;
+    }
+
+    .register-card {
+        max-width: 440px;
+        padding: 25px;
+        border-radius: 25px;
+        transform: none;
+    }
+
+    .register-logo {
+        font-size: 35px;
+    }
+}
+
+@media (max-width: 480px) {
+    .register-card {
+        padding: 22px 18px;
+    }
+
+    .register-logo {
+        font-size: 32px;
+    }
+
+    .register-header h5 {
+        font-size: 15px;
+    }
+}
+
+.register-header {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+.lockin-brand {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 75px;
+}
+
+.lockin-logo {
+    font-size: 38px;
+    font-weight: 900;
+    letter-spacing: 0;
+    line-height: 1;
+    margin: 0;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.lockin-robot {
+    position: absolute;
+    width: 75px;
+    height: 75px;
+    object-fit: contain;
+    left: calc(50% - 175px);
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+@media (max-width: 480px) {
+    .lockin-logo {
+        font-size: 30px;
+    }
+
+    .lockin-robot {
+        width: 55px;
+        height: 55px;
+        left: calc(50% - 140px);
+    }
+}
+

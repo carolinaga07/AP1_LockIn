@@ -9,58 +9,152 @@
 @inject IdentityRedirectManager RedirectManager
 @inject RegistroEstudiantesService RegistroService
 
-<PageTitle>Registro de estudiantes</PageTitle>
 
-<h1>Registro de estudiantes</h1>
+<PageTitle>Registro de estudiantes - Lock-in</PageTitle>
 
-<div class="row">
-    <div class="col-lg-6">
+<div class="register-container">
+
+    <div class="register-card">
+
+        <div class="register-header">
+
+            <div class="lockin-brand">
+
+                <img src="/images/lockin-robot.png"
+                     alt="Robot Lock-in"
+                     class="lockin-robot" />
+
+                <h1 class="lockin-logo">
+                    <span class="logo-blue">L</span><span class="logo-red">O</span><span class="logo-yellow">C</span><span class="logo-light">K</span><span class="logo-blue">-</span><span class="logo-red">I</span><span class="logo-yellow">N</span>
+                </h1>
+
+            </div>
+
+        </div>
+
         <StatusMessage Message="@Message" />
-        <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="register">
+
+        <EditForm Model="Input"
+                  method="post"
+                  OnValidSubmit="RegisterUser"
+                  FormName="register">
+
             <DataAnnotationsValidator />
-            <h2>Crear una cuenta</h2>
-            <hr />
             <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.NombreCompleto" id="NombreCompleto" class="form-control" placeholder="Nombre completo" />
-                <label for="NombreCompleto">Nombre completo</label>
-                <ValidationMessage For="() => Input.NombreCompleto" class="text-danger" />
+
+            <div class="row g-3">
+
+                @* Nombre completo *@
+                <div class="col-md-6">
+                    <label class="form-label">
+                        <strong>Nombre completo</strong>
+                    </label>
+
+                    <InputText @bind-Value="Input.NombreCompleto"
+                               id="NombreCompleto"
+                               class="form-control"
+                               placeholder="Nombre completo" />
+
+                    <ValidationMessage For="() => Input.NombreCompleto"
+                                       class="text-danger" />
+                </div>
+
+                @* Matrícula *@
+                <div class="col-md-6">
+                    <label class="form-label">
+                        <strong>Matrícula</strong>
+                    </label>
+
+                    <InputText @bind-Value="Input.Matricula"
+                               id="Matricula"
+                               class="form-control"
+                               placeholder="Matrícula" />
+
+                    <ValidationMessage For="() => Input.Matricula"
+                                       class="text-danger" />
+                </div>
+
+                @* Carrera *@
+                <div class="col-md-6">
+                    <label class="form-label">
+                        <strong>Carrera</strong>
+                    </label>
+
+                    <InputText @bind-Value="Input.Carrera"
+                               id="Carrera"
+                               class="form-control"
+                               placeholder="Carrera" />
+
+                    <ValidationMessage For="() => Input.Carrera"
+                                       class="text-danger" />
+                </div>
+
+                @* Correo electrónico *@
+                <div class="col-md-6">
+                    <label class="form-label">
+                        <strong>Correo electrónico</strong>
+                    </label>
+
+                    <InputText @bind-Value="Input.Email"
+                               id="Input.Email"
+                               class="form-control"
+                               autocomplete="username"
+                               placeholder="nombre@correo.com" />
+
+                    <ValidationMessage For="() => Input.Email"
+                                       class="text-danger" />
+                </div>
+
+                @* Contraseña *@
+                <div class="col-md-6">
+                    <label class="form-label">
+                        <strong>Contraseña</strong>
+                    </label>
+
+                    <InputText type="password"
+                               @bind-Value="Input.Password"
+                               id="Input.Password"
+                               class="form-control"
+                               autocomplete="new-password"
+                               placeholder="Contraseña" />
+
+                    <ValidationMessage For="() => Input.Password"
+                                       class="text-danger" />
+                </div>
+
+                @* Confirmar contraseña *@
+                <div class="col-md-6">
+                    <label class="form-label">
+                        <strong>Confirmar contraseña</strong>
+                    </label>
+
+                    <InputText type="password"
+                               @bind-Value="Input.ConfirmPassword"
+                               id="Input.ConfirmPassword"
+                               class="form-control"
+                               autocomplete="new-password"
+                               placeholder="Confirmar contraseña" />
+
+                    <ValidationMessage For="() => Input.ConfirmPassword"
+                                       class="text-danger" />
+                </div>
+
             </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Matricula" id="Matricula" class="form-control" placeholder="Matricula" />
-                <label for="Matricula">Matricula</label>
-                <ValidationMessage For="() => Input.Matricula" class="text-danger" />
+
+            <button type="submit"
+                    class="btn register-button w-100 mt-4">
+                Registrarse
+            </button>
+
+            <div class="register-login-link">
+                ¿Ya tienes una cuenta?
+                <a href="/Account/Login">Inicia sesión aquí</a>
             </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Carrera" id="Carrera" class="form-control" placeholder="Carrera" />
-                <label for="Carrera">Carrera</label>
-                <ValidationMessage For="() => Input.Carrera" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username" placeholder="name@example.com" />
-                <label for="Input.Email">Correo electronico</label>
-                <ValidationMessage For="() => Input.Email" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="new-password" placeholder="contraseña" />
-                <label for="Input.Password">Contraseña</label>
-                <ValidationMessage For="() => Input.Password" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" class="form-control" placeholder="Confirmar contraseña" />
-                <label for="Input.ConfirmPassword">Confirmar contraseña</label>
-                <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Registrarse</button>
+
         </EditForm>
+
     </div>
-    <div class="col-lg-4 col-lg-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            <ExternalLoginPicker />
-        </section>
-    </div>
+
 </div>
 
 @code {
