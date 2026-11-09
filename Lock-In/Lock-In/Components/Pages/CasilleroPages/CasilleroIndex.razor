@@ -46,6 +46,7 @@
             <div class="grid mt-2">
                 <QuickGrid Items="@itemsQueryable">
                     <PropertyColumn Property="@(c => c.CasilleroId)" Sortable="true" />
+                    <PropertyColumn Property="@(c => c.Numero)" Sortable="true" />
                     <PropertyColumn Property="@(c => c.Fila)" Sortable="true" />
                     <TemplateColumn Title="Estado" Sortable="true">
                         <span class="badge-estado @ObtenerEstado(context.Estado)">

@@ -10,18 +10,35 @@ namespace Lock_In.Services
     {
         public async Task<Result> Guardar(Casilleros casillero)
         {
+            bool existe;
+            await using var contexto = await contextFactory.CreateDbContextAsync();
 
-            if (!await Existe(casillero.CasilleroId))
+            if (casillero.CasilleroId == 0)
             {
-                var result = await Insertar(casillero);
-                return Result.Success(result);
+                existe = await contexto.Casilleros
+                    .AnyAsync(c => c.Fila == casillero.Fila && c.Numero == casillero.Numero);
             }
             else
             {
-                var result = await Modificar(casillero);
-                return Result.Success(result);
+                existe = await contexto.Casilleros
+                    .AnyAsync(c => c.Fila == casillero.Fila && c.Numero == casillero.Numero && c.CasilleroId != casillero.CasilleroId);
             }
 
+            if (existe)
+            {
+                return Result.Success(false); 
+            }
+
+            if (!await Existe(casillero.CasilleroId))
+            {
+                var existio = await Insertar(casillero);
+                return Result.Success(existio);
+            }
+            else
+            {
+                var modifico = await Modificar(casillero);
+                return Result.Success(modifico);
+            }
         }
         private async Task<bool> Existe(int CasilleroId)
         {
@@ -60,6 +77,13 @@ namespace Lock_In.Services
             contexto.Casilleros.Update(casillero);
             return await contexto.SaveChangesAsync() > 0;
 
+        }
+
+        public async Task<bool> ExisteCasillero(int fila, int numero, int casilleroId)
+        {
+            await using var contexto = await contextFactory.CreateDbContextAsync();
+            return await contexto.Casilleros
+                .AnyAsync(c => c.Fila == fila && c.Numero == numero && c.CasilleroId != casilleroId);
         }
 
         public async Task<Result<Casilleros?>> Buscar(int casilleroId)
