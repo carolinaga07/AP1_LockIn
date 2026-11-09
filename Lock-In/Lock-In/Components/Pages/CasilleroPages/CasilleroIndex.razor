@@ -46,10 +46,18 @@
             <div class="grid mt-2">
                 <QuickGrid Items="@itemsQueryable">
                     <PropertyColumn Property="@(c => c.CasilleroId)" Sortable="true" />
+                    <PropertyColumn Property="@(c => c.Numero)" Sortable="true" />
                     <PropertyColumn Property="@(c => c.Fila)" Sortable="true" />
-                    <PropertyColumn Property="@(c => c.Estado)" Sortable="true" />
-                    <PropertyColumn Property="@(c => c.LlaveDisponible)" Title ="Llave" Sortable="true" />
-
+                    <TemplateColumn Title="Estado" Sortable="true">
+                        <span class="badge-estado @ObtenerEstado(context.Estado)">
+                            @context.Estado
+                        </span>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Llave" Sortable="true">
+                        <span class="badge-estado @(context.LlaveDisponible ? "est-disponible" : "est-nodisponible")">
+                            @(context.LlaveDisponible ? "Disponible" : "No disponible")
+                        </span>
+                    </TemplateColumn>
 
                     <TemplateColumn Title="Opciones">
                         <a href="/Casilleros/Edit/@context.CasilleroId" class="btn btn-outline-primary bi bi-pencil-square"></a>
@@ -90,4 +98,18 @@
         }
     }
 
+    private string ObtenerEstado(EstadoCasillero estado)
+    {
+        switch (estado)
+        {
+            case EstadoCasillero.Disponible:
+                return "est-disponible";
+            case EstadoCasillero.Ocupado:
+                return "est-ocupado";
+            case EstadoCasillero.Inaccesible:
+                return "est-inaccesible";
+            default:
+                return "est-disponible";
+        }   
+    }
 }

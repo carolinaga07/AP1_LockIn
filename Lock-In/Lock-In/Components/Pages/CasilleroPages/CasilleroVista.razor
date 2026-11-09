@@ -1,0 +1,182 @@
+﻿@page "/Casilleros/Diagrama"
+@inject CasillerosService casillerosService
+@inject ToastService toastService
+@inject NavigationManager navigationManager
+
+
+<PageTitle> Diagrama de Casilleros</PageTitle>
+<div class="container-fluid px-4">
+<div class="card shadow-lg">
+    @*Encabezado*@
+    <div class="card-header d-flex flex-column justify-content-between align-content-center mb-4">
+        <h5 class="card-title m-0">Diagrama de Casilleros</h5>
+    </div>
+
+    <div class="card-body">
+        @*Filtro*@
+        <div class="row">
+            <div class="col-3">
+                <label class="col-form-label"><strong>Filtrar por Fila</strong></label>
+            </div>
+            <div class="col-4">
+                <label class="col-form-label"><strong>Filtrar por Estado</strong></label>
+            </div>
+        </div>
+        @*botones e inputs*@
+        <div class="row align-items-center mb-4">
+            <div class="col-3">
+                <InputSelect class="form-select" @bind-Value="FilaSeleccionada">
+                    <option value="1">Fila 1</option>
+                    <option value="2">Fila 2</option>
+                    <option value="3">Fila 3</option>
+                    <option value="4">Fila 4</option>
+                </InputSelect>
+            </div>
+            @*Filtrado por estado*@
+            <div class="col-4">
+                <div class="input-group">
+                    <InputSelect class="form-select" @bind-Value="FiltroEstado">
+                        <option value="">Todos los estados</option>
+                        <option value="Disponible">Disponible</option>
+                        <option value="Ocupado">Ocupado</option>
+                        <option value="Inaccesible">Inaccesible</option>
+                    </InputSelect>
+                    <button type="button" class="btn btn-outline-primary bi bi-search" @onclick="Buscar"></button>
+                </div>
+            </div>
+        </div>
+        @*Pestaña rapida para cambiar de fila*@
+        <div class="row mb-4">
+            <div class="col-12 d-flex gap-2">
+                @for(int i = 1; i <= 4; i++)
+                {
+                    int numeroFila = i;
+                    <button type="button" class="btn @(FilaSeleccionada == numeroFila ? "btn-primary shadow" : "btn-outline-secondary") px-4 fw-bold"
+                            @onclick="() => SeleccionarFila(numeroFila)">
+                        Fila @numeroFila
+                    </button>
+                }
+            </div>
+        </div>
+        @*Fila Activa*@
+        <div class="card bg-danger text-white p-2 shadow mb-2">
+            <h5 class="m-0 fw-bold">Fila @FilaSeleccionada - Casilleros</h5>
+        </div>
+        @*cuadricula*@
+        <div class="row g-3">
+            @if (listaCasilleros == null)
+            {
+                <p class="text-center py-4">Cargando casilleros...</p>
+            }else if(!listaCasilleros.Where(casillerosService => casillerosService.Fila == FilaSeleccionada).Any())
+            {
+                <div class="col-12 text-center py-5 text-muted bg-light rounded">
+                    <p class="fs-5 m-0"> No hay casileros registrados en la fila @FilaSeleccionada.</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var casillero in ObtenerCasillerosFiltrados())
+                {
+                    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                        <div class="card cubo-casillero text-center p-3 shadow-sm border-2">
+                            <div class="mb-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" style="@($"color: {ObtenerColorIcono(casillero.Estado)};")">
+                                    <path d="M0 0h24v24H0z" fill="none" />
+                                    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                                        <path fill="currentColor" d="M6 4a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v16a2 2 0 0 1 -2 2H8a2 2 0 0 1 -2 -2Z" opacity=".2" stroke="none" />
+                                        <path fill="currentColor" d="M14 14a1 1 0 1 0 2 0 1 1 0 1 0 -2 0" opacity=".2" stroke="none" />
+                                        <path d="M6 4a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v16a2 2 0 0 1 -2 2H8a2 2 0 0 1 -2 -2Z" />
+                                        <path d="M9 6h6" />
+                                        <path d="M9 9h6" />
+                                        <path d="M14 14a1 1 0 1 0 2 0 1 1 0 1 0 -2 0" />
+                                    </g>
+                                </svg>
+                            </div>
+                            <h6 class="fw-bold mb-2">N° @casillero.Numero</h6>
+                            <div>
+                                <span class="badge-estado @ObtenerEstado(casillero.Estado)">
+                                    @casillero.Estado
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+    </div>
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <label class="ms-3"><strong>Fila @FilaSeleccionada - Cantidad de casilleros: </strong>@ObtenerCasillerosFiltrados().Count().</label>
+        </div>
+    </div>
+</div>
+
+@code{
+    public int FilaSeleccionada { get; set; } = 1;
+    public string FiltroEstado { get; set; } = string.Empty;
+    public Casilleros casillero { get; set; } = new Casilleros();
+    private List<Casilleros> listaCasilleros = new List<Casilleros>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await casillerosService.GetList(c => c.CasilleroId > 0);
+        if (result.IsSuccess && result.Value != null)
+        {
+            listaCasilleros = result.Value;
+        }
+    }
+
+    private void SeleccionarFila(int fila)
+    {
+        FilaSeleccionada = fila;
+    }
+
+    public async Task Buscar()
+    {
+        var result = await casillerosService.GetList(c => c.Fila == FilaSeleccionada);
+        if (result.IsSuccess && result.Value !=  null)
+        {
+            listaCasilleros = result.Value;
+        }
+    }
+
+    private IEnumerable<Casilleros> ObtenerCasillerosFiltrados()
+    {
+        var result = listaCasilleros.Where(c => c.Fila == FilaSeleccionada);
+        if (!string.IsNullOrEmpty(FiltroEstado) && Enum.TryParse<EstadoCasillero>(FiltroEstado, out var estadoEnum))
+        {
+            result = result.Where(c => c.Estado == estadoEnum);
+        }
+        return result;
+    }
+
+    private string ObtenerEstado(EstadoCasillero estado)
+    {
+        switch (estado)
+        {
+            case EstadoCasillero.Disponible:
+                return "est-disponible";
+            case EstadoCasillero.Ocupado:
+                return "est-ocupado";
+            case EstadoCasillero.Inaccesible:
+                return "est-inaccesible";
+            default:
+                return "est-disponible";
+        }   
+    }
+
+    private string ObtenerColorIcono(EstadoCasillero estado)
+    {
+        switch (estado)
+        {
+            case EstadoCasillero.Disponible:
+                return "#416849";
+            case EstadoCasillero.Ocupado:
+                return "#8a4d4d";
+            case EstadoCasillero.Inaccesible:
+                return "#905a34";
+            default:
+                return "#416849";
+        }
+    }
+}

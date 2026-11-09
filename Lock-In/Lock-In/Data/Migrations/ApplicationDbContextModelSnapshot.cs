@@ -155,6 +155,9 @@ namespace Lock_In.Migrations
                     b.Property<string>("MotivoInaccesibilidad")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Numero")
+                        .HasColumnType("int");
+
                     b.HasKey("CasilleroId");
 
                     b.ToTable("Casilleros");

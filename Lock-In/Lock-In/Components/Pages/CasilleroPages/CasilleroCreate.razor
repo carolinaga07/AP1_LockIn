@@ -19,6 +19,11 @@
                     <label class="form-label"><strong>CasilleroId</strong></label>
                     <InputNumber class="form-control" @bind-Value="Casillero.CasilleroId" readonly></InputNumber>
                 </div>
+                @*Numero*@
+                <div class="mb-3">
+                    <label class="form-label"><strong>N&uacute;mero de Casillero</strong></label>
+                    <InputNumber class="form-control" @bind-Value="Casillero.Numero" ></InputNumber>
+                </div>
                 @*Fila*@
                 <div class="mb-3">
                     <label class="form-label"><strong>Fila</strong></label>
@@ -38,6 +43,14 @@
 
     public async Task Guardar()
     {
+        bool existe = await casillerosService.ExisteCasillero(Casillero.Fila, Casillero.Numero, Casillero.CasilleroId);
+
+        if (existe)
+        {
+            toastService.ShowError("Ya existe un casillero con ese número en la fila especificada.");
+            return; 
+        }
+
         var result = await casillerosService.Guardar(Casillero);
 
         result.OnSuccess(() =>
@@ -46,6 +59,9 @@
             navigationManager.NavigateTo("/Casilleros/Index");
         });
 
-        result.OnFailure(() => toastService.ShowError("Error al guardar el casillero."));
+        result.OnFailure(() =>
+        {
+            toastService.ShowError("No se pudo guardar el casillero correctamente...");
+        });
     }
 }

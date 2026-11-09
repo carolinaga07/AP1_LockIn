@@ -19,15 +19,20 @@
                     <label class="form-label"><strong>CasilleroId</strong></label>
                     <InputNumber class="form-control" @bind-Value="Casillero.CasilleroId" readonly></InputNumber>
                 </div>
+                @*Numero*@
+                <div class="mb-3">
+                    <label class="form-label"><strong>N&uacute;mero de Casillero</strong></label>
+                    <InputNumber class="form-control" @bind-Value="Casillero.Numero" readonly></InputNumber>
+                </div>
                 @*Fila*@
                 <div class="mb-3">
                     <label class="form-label"><strong>Fila</strong></label>
-                    <InputNumber class="form-control" @bind-Value="Casillero.Fila"></InputNumber>
+                    <InputNumber class="form-control" @bind-Value="Casillero.Fila" readonly></InputNumber>
                 </div>
                 @*Estado*@
                 <div class="mb-3">
                     <label class="form-label"><strong>Estado</strong></label>
-                    <InputSelect class="form-control" @bind-Value="Casillero.Estado">
+                    <InputSelect class="form-control" @bind-Value="Casillero.Estado" @bind-Value:after="OnEstadoCambio">
                         <option value="" disabled selected> -- Seleccione un estado --</option>
                         <option value="Disponible">Disponible</option>
                         <option value="Ocupado">Ocupado</option>
@@ -52,10 +57,34 @@
             <div class="card-footer text-center mt-2">
                 <a href="Casilleros/Index" class="btn btn-secondary"><span class="bi bi-arrow-left"></span> Volver</a>
                 <button type="submit" class="btn btn-primary bi bi-floppy"> Guardar</button>
+                <a href="" class="btn btn-danger bi bi-trash" data-bs-toggle="modal" data-bs-target="#modalEliminar"> Eliminar</a>
             </div>
         </div>
     </div>
 </EditForm>
+
+@*Modal eliminacion*@
+<div class="modal" id="modalEliminar" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"> Confirmar Eliminaci&oacute;n</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                @if (Casillero != null)
+                {
+
+                    <p>¿Esta seguro que desea eliminar este casillero?</p>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="Eliminar" data-bs-dismiss="modal"> Confirmar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
     [Parameter]
@@ -91,5 +120,31 @@
         {
             Casillero.LlaveDisponible = true;
         }
+    }
+
+    private void OnEstadoCambio()
+    {
+        if (Casillero.Estado.Equals(EstadoCasillero.Disponible))
+        {
+            Casillero.LlaveDisponible = true;
+            Casillero.MotivoInaccesibilidad = string.Empty;
+        }
+        else if (Casillero.Estado.Equals(EstadoCasillero.Ocupado))
+        {
+            Casillero.MotivoInaccesibilidad = string.Empty;
+        }
+    }
+
+    private async Task Eliminar()
+    {
+        var result = await casillerosService.Eliminar(Casillero.CasilleroId);
+
+        result.OnSuccess(() =>
+        {
+            toastService.ShowSuccess("¡Casillero eliminado exitosamente!");
+            navigationManager.NavigateTo("/Casilleros/Index");
+        });
+
+        result.OnFailure(() => toastService.ShowError("Error al eliminar el casillero."));
     }
 }
