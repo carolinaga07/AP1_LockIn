@@ -20,9 +20,9 @@
 
 .register-card {
     width: 100%;
-    max-width: 500px;
+    max-width: 460px;
     background-color: #fffaf8;
-    padding: 25px 30px;
+    padding: 25px 25px;
     border-radius: 32px;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.18);
     transform: translateY(75px);
@@ -189,3 +189,51 @@
         font-size: 15px;
     }
 }
+
+.register-header {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+.lockin-brand {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 75px;
+}
+
+.lockin-logo {
+    font-size: 38px;
+    font-weight: 900;
+    letter-spacing: 0;
+    line-height: 1;
+    margin: 0;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.lockin-robot {
+    position: absolute;
+    width: 75px;
+    height: 75px;
+    object-fit: contain;
+    left: calc(50% - 175px);
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+@media (max-width: 480px) {
+    .lockin-logo {
+        font-size: 30px;
+    }
+
+    .lockin-robot {
+        width: 55px;
+        height: 55px;
+        left: calc(50% - 140px);
+    }
+}
+

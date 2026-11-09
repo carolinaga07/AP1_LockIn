@@ -338,3 +338,47 @@
         font-size: 13px;
     }
 }
+
+.lockin-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    margin: 0 auto 8px;
+}
+
+.login-header {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+.lockin-brand {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 65px;
+}
+
+.lockin-logo {
+    font-size: 38px;
+    font-weight: 900;
+    letter-spacing: 0;
+    line-height: 1;
+    margin: 0;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.lockin-robot {
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+    left: calc(50% - 165px);
+    top: 50%;
+    transform: translateY(-50%);
+}
