@@ -10,20 +10,18 @@ namespace Lock_In.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "Numero",
-                table: "Casilleros",
-                type: "int",
-                nullable: false,
-                defaultValue: 0);
+            migrationBuilder.Sql("""
+                IF COL_LENGTH(N'dbo.Casilleros', N'Numero') IS NULL
+                BEGIN
+                    ALTER TABLE [dbo].[Casilleros]
+                    ADD [Numero] int NOT NULL DEFAULT (0);
+                END
+                """);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "Numero",
-                table: "Casilleros");
         }
     }
 }

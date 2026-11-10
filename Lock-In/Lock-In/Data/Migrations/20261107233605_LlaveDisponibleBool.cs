@@ -15,7 +15,13 @@ namespace Lock_In.Migrations
                 table: "Casilleros",
                 type: "bit",
                 nullable: false,
-                defaultValue: false);
+                defaultValue: true);
+
+            migrationBuilder.Sql("""
+                UPDATE [dbo].[Casilleros]
+                SET [LlaveDisponible] = 0
+                WHERE [MotivoInaccesibilidad] = N'Llave Pérdida';
+                """);
         }
 
         /// <inheritdoc />
