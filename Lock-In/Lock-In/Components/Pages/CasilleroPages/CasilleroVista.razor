@@ -1,7 +1,14 @@
 ﻿@page "/Casilleros/Diagrama"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles ="Administrador,Bibliotecario,Estudiante")]
+
 @inject CasillerosService casillerosService
+@inject SolicitudesService solicitudesService
+@inject AuthenticationStateProvider authenticationStateProvider
 @inject ToastService toastService
 @inject NavigationManager navigationManager
+@inject IJSRuntime JS
+
 
 
 <PageTitle> Diagrama de Casilleros</PageTitle>
@@ -78,7 +85,11 @@
                 @foreach (var casillero in ObtenerCasillerosFiltrados())
                 {
                     <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-                        <div class="card cubo-casillero text-center p-3 shadow-sm border-2">
+                        <div class="card cubo-casillero text-center p-3 shadow-sm border-2"
+                                 style="cursor: @(EsEstudiante && casillero.Estado == EstadoCasillero.Disponible && casillero.LlaveDisponible ? "pointer" : "default")"
+                                 data-bs-toggle="@(EsEstudiante && casillero.Estado == EstadoCasillero.Disponible && casillero.LlaveDisponible? "modal" : null)"
+                                 data-bs-target="@(EsEstudiante && casillero.Estado == EstadoCasillero.Disponible && casillero.LlaveDisponible? "#modalSolicitar" : null)"
+                                 @onclick="(() => SeleccionarCasillero(casillero))">
                             <div class="mb-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" style="@($"color: {ObtenerColorIcono(casillero.Estado)};")">
                                     <path d="M0 0h24v24H0z" fill="none" />
@@ -103,6 +114,38 @@
                 }
             }
         </div>
+            @if(EsEstudiante)
+            {
+               <div class="modal fade" id="modalSolicitar" tabindex="-1" aria-labelledby="tituloModalSolicitar" aria-hidden="true">
+                   <div class="modal-dialog">
+                       <div class="modal-content">
+                           <div class="modal-header">
+                               <h5 class="modal-title" id="tituloModalSolicitar">Confirmar Solicitud</h5>
+                               <button type="button" class="btn btn-close" data-bs-dismiss="modal"></button>
+                           </div>
+                           <div class="modal-body">
+                                @if(CasilleroSeleccionado != null)
+                                {
+                                    <p class="mb-2">Deseas solicitar el siguiente casillero?</p>
+                                    <p class="mb-1"><strong>Fila:</strong>@CasilleroSeleccionado.Fila</p>
+                                    <p class="mb-1"><strong>Numero:</strong>@CasilleroSeleccionado.Numero</p>
+                                    <p class="mb-0"><strong>Estado:</strong>@CasilleroSeleccionado.Estado</p>
+                                    @if(!string.IsNullOrEmpty(mensajeSolicitud) && !solicitudExitosa)
+                                    {
+                                        <div class="alert alert-danger mt-3">
+                                            @mensajeSolicitud
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"> Cancelar</button>
+                                <button type="button" class="btn btn-primary" disabled="@enviado" @onclick="SolicitarCasillero">@(enviado ? "Enviado..." : "Confirmar Solicitud")</button>
+                            </div>
+                       </div>
+                   </div>
+               </div>
+            }
 
     </div>
         <div class="card-footer d-flex justify-content-between align-items-center">
@@ -116,8 +159,23 @@
     public string FiltroEstado { get; set; } = string.Empty;
     public Casilleros casillero { get; set; } = new Casilleros();
     private List<Casilleros> listaCasilleros = new List<Casilleros>();
+    public Casilleros? CasilleroSeleccionado { get; set; }
+    private bool EsEstudiante = false;
+    private bool enviado = false;
+    private bool solicitudExitosa = false;
+    private string? mensajeSolicitud;
+    private string? usuarioId;
 
     protected override async Task OnInitializedAsync()
+    {
+        var authState = await authenticationStateProvider.GetAuthenticationStateAsync();
+        EsEstudiante = authState.User.IsInRole("Estudiante");
+        usuarioId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        await CargarCasilleros();
+
+    }
+
+    private async Task CargarCasilleros()
     {
         var result = await casillerosService.GetList(c => c.CasilleroId > 0);
         if (result.IsSuccess && result.Value != null)
@@ -129,15 +187,15 @@
     private void SeleccionarFila(int fila)
     {
         FilaSeleccionada = fila;
+        CasilleroSeleccionado = null;
+        mensajeSolicitud = null;
     }
 
     public async Task Buscar()
     {
-        var result = await casillerosService.GetList(c => c.Fila == FilaSeleccionada);
-        if (result.IsSuccess && result.Value !=  null)
-        {
-            listaCasilleros = result.Value;
-        }
+        await CargarCasilleros();
+        CasilleroSeleccionado = null;
+        mensajeSolicitud = null;
     }
 
     private IEnumerable<Casilleros> ObtenerCasillerosFiltrados()
@@ -148,6 +206,70 @@
             result = result.Where(c => c.Estado == estadoEnum);
         }
         return result;
+    }
+
+    private void SeleccionarCasillero(Casilleros casillero)
+    {
+        if(!EsEstudiante || enviado)
+        {
+            return;
+        }
+
+        if(casillero.Estado != EstadoCasillero.Disponible || !casillero.LlaveDisponible)
+        {
+            return;
+        }
+        CasilleroSeleccionado = casillero;
+        mensajeSolicitud = null;
+    }
+
+    private async Task SolicitarCasillero()
+    {
+        if(!EsEstudiante || CasilleroSeleccionado == null || string.IsNullOrEmpty(usuarioId) || enviado)
+        {
+            return;
+        }
+        enviado = true;
+        mensajeSolicitud = null;
+        solicitudExitosa = false;
+
+        try
+        {
+            var estudiante = await solicitudesService.BuscarEstudiantePorUsuario(usuarioId);
+            if(estudiante == null)
+            {
+                mensajeSolicitud = "No se encontro tu registro de estudiante.";
+                return;
+            }
+
+            var solicitud = new Solicitudes
+                {
+                    EstudianteId = estudiante.EstudianteId,
+                    CasilleroId = CasilleroSeleccionado.CasilleroId
+                };
+            var resultado = await solicitudesService.GuardarSolicitudEstudiante(usuarioId, CasilleroSeleccionado.CasilleroId);
+            if (resultado.IsSuccess)
+            {
+                solicitudExitosa = true;
+                mensajeSolicitud = "La solicitud fue enviada correctamente";
+
+                await JS.InvokeVoidAsync("cerrarModalBootstrap", "modalSolicitar");
+                CasilleroSeleccionado = null;
+                await CargarCasilleros();
+            }
+            else
+            {
+                mensajeSolicitud = "No se pudo registrar la solicitud";
+            }
+        }
+        catch(Exception)
+        {
+            mensajeSolicitud = "Ocurrio un error al enviar la solicitud";
+        }
+        finally
+        {
+            enviado = false;
+        }
     }
 
     private string ObtenerEstado(EstadoCasillero estado)
@@ -179,4 +301,6 @@
                 return "#416849";
         }
     }
+
+    
 }

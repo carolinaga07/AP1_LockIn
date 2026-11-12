@@ -1,0 +1,473 @@
+﻿@page "/Solicitudes"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Administrador,Bibliotecario")]
+@inject SolicitudesService solicitudesService
+@inject ToastService toastService
+@inject AuthenticationStateProvider authenticationStateProvider
+@inject IJSRuntime JS
+
+<PageTitle>Gestión de Solicitudes</PageTitle>
+
+<div class="container">
+    <div class="card shadow-lg">
+
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title m-0">
+                Gestión de Solicitudes
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            @* Filtros *@
+            <div class="row align-items-end mb-4">
+
+                <div class="col-3">
+                    <label class="form-label">
+                        Filtrar por
+                    </label>
+
+                    <InputSelect class="form-select"
+                                 @bind-Value="Filtro">
+                        <option value="">Todos</option>
+                        <option value="Estado">Estado</option>
+                        <option value="Matricula">Matrícula</option>
+                    </InputSelect>
+                </div>
+
+                @if (Filtro == "Estado")
+                {
+                    <div class="col-4">
+                        <label class="form-label">
+                            Estado
+                        </label>
+
+                        <InputSelect class="form-select"
+                                     @bind-Value="ValorFiltro">
+                            <option value="">Todos los estados</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Aprobada">Aprobada</option>
+                            <option value="Rechazada">Rechazada</option>
+                            <option value="Cancelada">Cancelada</option>
+                        </InputSelect>
+                    </div>
+                }
+                else if (Filtro == "Matricula")
+                {
+                    <div class="col-4">
+                        <label class="form-label">
+                            Matrícula
+                        </label>
+
+                        <input class="form-control"
+                               @bind="ValorFiltro"
+                               placeholder="Buscar matrícula" />
+                    </div>
+                }
+
+                <div class="col-auto">
+                    <button type="button"
+                            class="btn btn-outline-primary bi bi-search"
+                            @onclick="Buscar">
+                        Buscar
+                    </button>
+                </div>
+
+                <div class="col-auto">
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            @onclick="LimpiarFiltros">
+                        Limpiar
+                    </button>
+                </div>
+
+            </div>
+
+            @* Tabla de solicitudes *@
+            <QuickGrid Items="ListaSolicitudes.AsQueryable()"
+                       class="table table-hover text-center mt-3">
+
+                <PropertyColumn Property="s => s.SolicitudId"
+                                Title="ID"
+                                Sortable="true" />
+
+                <PropertyColumn Property="s => s.Estudiante.Matricula"
+                                Title="Matrícula"
+                                Sortable="true" />
+
+                <TemplateColumn Title="Casillero">
+                    Fila @context.Casillero?.Fila -
+                    N° @context.Casillero?.Numero
+                </TemplateColumn>
+
+                <PropertyColumn Property="s => s.FechaSolicitud"
+                                Title="Fecha"
+                                Sortable="true" />
+
+                <TemplateColumn Title="Estado">
+                    <span class="badge @ObtenerClaseEstado(context.Estado)">
+                        @context.Estado
+                    </span>
+                </TemplateColumn>
+
+                <TemplateColumn Title="Opciones">
+                    @if (context.Estado == EstadoSolicitud.Pendiente)
+                    {
+                        <button type="button"
+                                class="btn btn-outline-success bi bi-check-circle me-2"
+                                title="Aprobar"
+                                @onclick="() => SeleccionarAprobar(context)">
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-outline-danger bi bi-x-circle"
+                                title="Rechazar"
+                                @onclick="() => SeleccionarRechazar(context)">
+                        </button>
+                    }
+                    else
+                    {
+                        <span class="text-muted">
+                            Sin acciones
+                        </span>
+                    }
+                </TemplateColumn>
+
+            </QuickGrid>
+
+            @if (ListaSolicitudes.Count == 0)
+            {
+                <p class="text-center text-muted mt-3">
+                    No se encontraron solicitudes.
+                </p>
+            }
+
+        </div>
+
+        <div class="card-footer d-flex justify-content-between">
+            <label>
+                Cantidad: @ListaSolicitudes.Count
+            </label>
+
+            <label>
+                Pendientes:
+                @ListaSolicitudes.Count(s => s.Estado == EstadoSolicitud.Pendiente)
+            </label>
+        </div>
+
+    </div>
+</div>
+
+@* Modal para aprobar *@
+<div class="modal fade" id="modalAprobar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Confirmar Aprobación
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        disabled="@procesando"
+                        data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <p>
+                    ¿Deseas aprobar la solicitud
+                    N° @SolicitudSeleccionada?.SolicitudId?
+                </p>
+
+                @if (SolicitudSeleccionada is not null)
+                {
+                    <p>
+                        <strong>Matrícula:</strong>
+                        @SolicitudSeleccionada.Estudiante?.Matricula
+                    </p>
+
+                    <p>
+                        <strong>Casillero:</strong>
+                        Fila @SolicitudSeleccionada.Casillero?.Fila -
+                        N° @SolicitudSeleccionada.Casillero?.Numero
+                    </p>
+                }
+
+                @if (!string.IsNullOrEmpty(errorModal))
+                {
+                    <div class="alert alert-danger">
+                        @errorModal
+                    </div>
+                }
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-secondary"
+                        disabled="@procesando"
+                        data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button type="button"
+                        class="btn btn-success"
+                        disabled="@procesando"
+                        @onclick="ConfirmarAprobacion">
+                    @(procesando ? "Procesando..." : "Confirmar")
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@* Modal para rechazar *@
+<div class="modal fade" id="modalRechazar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Rechazar Solicitud
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        disabled="@procesando"
+                        data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <p>
+                    ¿Deseas rechazar la solicitud
+                    N° @SolicitudSeleccionada?.SolicitudId?
+                </p>
+
+                <label class="form-label">
+                    Motivo del rechazo
+                </label>
+
+                <InputTextArea class="form-control"
+                               @bind-Value="MotivoRechazo"
+                               rows="3" />
+
+                @if (!string.IsNullOrEmpty(errorModal))
+                {
+                    <div class="alert alert-danger mt-3">
+                        @errorModal
+                    </div>
+                }
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-secondary"
+                        disabled="@procesando"
+                        data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button type="button"
+                        class="btn btn-danger"
+                        disabled="@procesando"
+                        @onclick="ConfirmarRechazo">
+                    @(procesando ? "Procesando..." : "Confirmar Rechazo")
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@code {
+    public string Filtro { get; set; } = string.Empty;
+    public string ValorFiltro { get; set; } = string.Empty;
+
+    public List<Solicitudes> ListaSolicitudes { get; set; } = new();
+
+    private Solicitudes? SolicitudSeleccionada;
+    private string MotivoRechazo = string.Empty;
+    private string? usuarioId;
+    private string? errorModal;
+    private bool procesando;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState =
+            await authenticationStateProvider.GetAuthenticationStateAsync();
+
+        usuarioId = authState.User.FindFirstValue(
+            ClaimTypes.NameIdentifier);
+
+        await CargarSolicitudes(s => true);
+    }
+
+    private async Task CargarSolicitudes(
+        System.Linq.Expressions.Expression<Func<Solicitudes, bool>> criterio)
+    {
+        var resultado = await solicitudesService.GetList(criterio);
+
+        resultado.OnSuccess(lista => ListaSolicitudes = lista);
+
+        resultado.OnFailure(() =>
+            toastService.ShowError(
+                "No se pudieron cargar las solicitudes"));
+    }
+
+    private async Task Buscar()
+    {
+        if (Filtro == "Estado" &&
+            !string.IsNullOrWhiteSpace(ValorFiltro))
+        {
+            if (Enum.TryParse<EstadoSolicitud>(
+                ValorFiltro, out var estado))
+            {
+                await CargarSolicitudes(s => s.Estado == estado);
+            }
+        }
+        else if (Filtro == "Matricula" &&
+                 !string.IsNullOrWhiteSpace(ValorFiltro))
+        {
+            var matricula = ValorFiltro.Trim();
+
+            await CargarSolicitudes(s =>
+                s.Estudiante.Matricula.Contains(matricula));
+        }
+        else
+        {
+            await CargarSolicitudes(s => true);
+        }
+    }
+
+    private async Task LimpiarFiltros()
+    {
+        Filtro = string.Empty;
+        ValorFiltro = string.Empty;
+
+        await CargarSolicitudes(s => true);
+    }
+
+    private async Task SeleccionarAprobar(Solicitudes solicitud)
+    {
+        SolicitudSeleccionada = solicitud;
+        errorModal = null;
+
+        await JS.InvokeVoidAsync(
+            "abrirModalBootstrap", "modalAprobar");
+    }
+
+    private async Task SeleccionarRechazar(Solicitudes solicitud)
+    {
+        SolicitudSeleccionada = solicitud;
+        MotivoRechazo = string.Empty;
+        errorModal = null;
+
+        await JS.InvokeVoidAsync(
+            "abrirModalBootstrap", "modalRechazar");
+    }
+
+    private async Task ConfirmarAprobacion()
+    {
+        if (SolicitudSeleccionada is null ||
+            string.IsNullOrEmpty(usuarioId) ||
+            procesando)
+            return;
+
+        procesando = true;
+        errorModal = null;
+
+        try
+        {
+            var resultado = await solicitudesService.Aprobar(
+                SolicitudSeleccionada.SolicitudId,
+                usuarioId);
+
+            if (resultado.IsSuccess)
+            {
+                await JS.InvokeVoidAsync(
+                    "cerrarModalBootstrap", "modalAprobar");
+
+                await CargarSolicitudes(s => true);
+
+                toastService.ShowSuccess(
+                    "Solicitud aprobada correctamente");
+            }
+            else
+            {
+                errorModal = resultado.Error.Description;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorModal = ex.ToString();
+            Console.WriteLine(ex.ToString());
+        }
+        finally
+        {
+            procesando = false;
+        }
+    }
+
+    private async Task ConfirmarRechazo()
+    {
+        if (SolicitudSeleccionada is null ||
+            string.IsNullOrEmpty(usuarioId) ||
+            procesando)
+            return;
+
+        if (string.IsNullOrWhiteSpace(MotivoRechazo))
+        {
+            errorModal = "Debes indicar el motivo del rechazo.";
+            return;
+        }
+
+        procesando = true;
+        errorModal = null;
+
+        try
+        {
+            var resultado = await solicitudesService.Rechazar(
+                SolicitudSeleccionada.SolicitudId,
+                usuarioId,
+                MotivoRechazo);
+
+            if (resultado.IsSuccess)
+            {
+                await JS.InvokeVoidAsync(
+                    "cerrarModalBootstrap", "modalRechazar");
+
+                await CargarSolicitudes(s => true);
+
+                toastService.ShowSuccess(
+                    "Solicitud rechazada correctamente");
+            }
+            else
+            {
+                errorModal = "No se pudo rechazar la solicitud.";
+            }
+        }
+        catch (Exception)
+        {
+            errorModal = "Ocurrió un error al rechazar la solicitud.";
+        }
+        finally
+        {
+            procesando = false;
+        }
+    }
+
+    private string ObtenerClaseEstado(EstadoSolicitud estado)
+    {
+        return estado switch
+        {
+            EstadoSolicitud.Pendiente => "bg-warning text-dark",
+            EstadoSolicitud.Aprobada => "bg-success",
+            EstadoSolicitud.Rechazada => "bg-danger",
+            EstadoSolicitud.Cancelada => "bg-secondary",
+            _ => "bg-secondary"
+        };
+    }
+}

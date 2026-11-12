@@ -22,6 +22,22 @@
     <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="@Assets["Components/Account/Shared/PasskeySubmit.razor.js"]" type="module"></script>
     <script src="@Assets["lib/bootstrap/dist/js/bootstrap.bundle.min.js"]"></script>
+    <script>
+        window.abrirModalBootstrap = function(modalId) {
+            const elemento = document.getElementById(modalId);
+            const modal = bootstrap.Modal.getOrCreateInstance(elemento);
+            modal.show();
+        };
+
+        window.cerrarModalBootstrap = function(modalId){
+            const elemento = document.getElementById(modalId);
+            const modal = bootstrap.Modal.getInstance(elemento);
+
+            if (modal) {
+                modal.hide();
+            }
+        };
+    </script>
     <script src="_content/Blazor.Bootstrap/blazor.bootstrap.js"></script>
 </body>
 

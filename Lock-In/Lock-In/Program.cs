@@ -60,6 +60,7 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 builder.Services.AddScoped<RegistroEstudiantesService>();
 builder.Services.AddScoped<UsuariosService>();
 builder.Services.AddScoped<CasillerosService>();
+builder.Services.AddScoped<SolicitudesService>();
 builder.Services.AddBlazorBootstrap();
 
 var app = builder.Build();
