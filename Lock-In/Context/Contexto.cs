@@ -16,6 +16,9 @@ public class Contexto : IdentityDbContext<ApplicationUser>
     public DbSet<Asignaciones> Asignaciones { get; set; }
     public DbSet<Notificaciones> Notificaciones { get; set; }
     public DbSet<HistorialMovimientos> HistorialMovimientos { get; set; }
+    public DbSet<Inspecciones> Inspecciones { get; set; }
+    public DbSet<DetalleInspecciones> DetalleInspecciones { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -69,5 +72,26 @@ public class Contexto : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<Llaves>()
             .HasIndex(l => l.CasilleroId)
             .IsUnique();
+
+        //Inspecciones
+
+        modelBuilder.Entity<DetalleInspecciones>()
+            .HasOne(d => d.Inspeccion)
+            .WithMany(i => i.Detalles)
+            .HasForeignKey(d => d.InspeccionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<DetalleInspecciones>()
+            .HasOne(d => d.Casillero)
+            .WithMany()
+            .HasForeignKey(d => d.CasilleroId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Inspecciones>()
+            .HasOne(i => i.Responsable)
+            .WithMany()
+            .HasForeignKey(i => i.ResponsableId)
+            .OnDelete(DeleteBehavior.Restrict);
+
     }
 }

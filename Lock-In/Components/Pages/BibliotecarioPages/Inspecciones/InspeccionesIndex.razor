@@ -1,0 +1,263 @@
+﻿@page "/Inspecciones"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Administrador, Bibliotecario")]
+
+@inject InspeccionesService inspeccionesService
+@inject ToastService toastService
+
+<PageTitle>Index de Inspecciones</PageTitle>
+
+<div class="container">
+    <div class="card shadow-lg">
+
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title m-0">
+                Registro de Inspecciones
+            </h5>
+
+            <a href="/Inspecciones/Registro" class="btn btn-primary">
+                <i class="bi bi-plus-square me-2"></i>
+                Nueva Inspección
+            </a>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+                <div class="col-3">
+                    <label class="col-form-label">
+                        <strong>Filtrar por</strong>
+                    </label>
+                </div>
+
+                <div class="col-4">
+                    <label class="col-form-label">
+                        <strong>Búsqueda</strong>
+                    </label>
+                </div>
+            </div>
+
+            <div class="row align-items-center">
+                <div class="col-3">
+                    <InputSelect class="form-select" @bind-Value="Filtro">
+                        <option value="" disabled>Elija una opción</option>
+                        <option value="Id">Id</option>
+                        <option value="Responsable">Responsable</option>
+                        <option value="Estado">Estado</option>
+                    </InputSelect>
+                </div>
+
+                <div class="col-4">
+                    <div class="input-group">
+                        <input class="form-control"
+                               @bind="ValorFiltro"
+                               placeholder="Buscar" />
+
+                        <button type="button"
+                                class="btn btn-outline-primary bi bi-search"
+                                @onclick="Buscar">
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive mt-3">
+
+                <QuickGrid Items="@itemsQueryable"
+                           Class="table table-hover align-middle text-center mt-3">
+
+                    <PropertyColumn Property="@(i => i.InspeccionId)"
+                                    Title="ID"
+                                    Sortable="true" />
+
+                    <PropertyColumn Property="@(i => i.Fecha)"
+                                    Format="dd/MM/yyyy"
+                                    Title="Fecha"
+                                    Sortable="true" />
+
+                    <TemplateColumn Title="Responsable">
+                        @(context.Responsable?.UserName ?? "No disponible")
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Casilleros">
+                        @context.Detalles.Count
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Mantenimiento">
+                        @{
+                            var cantidad = context.Detalles
+                                .Count(d => d.RequiereMantenimiento);
+                        }
+
+                        <span class="badge @(cantidad > 0 ? "bg-warning text-dark" : "bg-success") px-3 py-2">
+                            @(cantidad > 0 ? cantidad.ToString() : "Ninguno")
+                        </span>
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Estado">
+                        <span class="badge @ObtenerClaseEstado(context.Estado) px-3 py-2">
+                            @context.Estado
+                        </span>
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Opciones">
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="/Inspecciones/Editar/@context.InspeccionId"
+                               class="btn btn-outline-primary btn-sm"
+                               title="Editar inspección">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+
+                            <button type="button"
+                                    class="btn btn-outline-primary btn-sm"
+                                    title="Ver detalles"
+                                    @onclick="() => VerDetalles(context)">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </TemplateColumn>
+
+                </QuickGrid>
+
+            </div>
+
+            @if (inspeccionSeleccionada is not null)
+            {
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>
+                            Detalles de la inspección #@inspeccionSeleccionada.InspeccionId
+                        </h5>
+
+                        <button class="btn btn-outline-secondary btn-sm"
+                                @onclick="CerrarDetalles">
+                            Cerrar
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <QuickGrid Items="@detallesQueryable"
+                                   Class="table table-hover align-middle text-center">
+
+                            <TemplateColumn Title="Casillero">
+                                @(context.Casillero?.Numero.ToString() ?? context.CasilleroId.ToString())
+                            </TemplateColumn>
+
+                            <PropertyColumn Property="@(d => d.Condicion)"
+                                            Title="Condición" />
+
+                            <TemplateColumn Title="Observaciones">
+                                @(context.Observaciones ?? "Sin observaciones")
+                            </TemplateColumn>
+
+                            <TemplateColumn Title="Requiere mantenimiento">
+                                <span class="badge @(context.RequiereMantenimiento ? "bg-warning text-dark" : "bg-success")">
+                                    @(context.RequiereMantenimiento ? "Sí" : "No")
+                                </span>
+                            </TemplateColumn>
+
+                        </QuickGrid>
+                    </div>
+                </div>
+            }
+
+        </div>
+
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <label>
+                <strong>Cantidad:</strong>
+                @itemsQueryable.Count()
+            </label>
+
+            <label>
+                <strong>Finalizadas:</strong>
+                @itemsQueryable.Count(i => i.Estado == "Finalizada")
+            </label>
+        </div>
+
+    </div>
+</div>
+
+@code {
+    private List<Inspecciones> inspecciones = new();
+
+    private IQueryable<Inspecciones> itemsQueryable =
+        new List<Inspecciones>().AsQueryable();
+
+    private Inspecciones? inspeccionSeleccionada;
+
+    private IQueryable<DetalleInspecciones> detallesQueryable =>
+        inspeccionSeleccionada?.Detalles.AsQueryable()
+        ?? new List<DetalleInspecciones>().AsQueryable();
+
+    private string Filtro = string.Empty;
+    private string ValorFiltro = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarInspecciones();
+    }
+
+    private async Task CargarInspecciones()
+    {
+        var resultado = await inspeccionesService.GetList(i => true);
+
+        if (resultado.IsSuccess)
+        {
+            inspecciones = resultado.Value ?? new();
+            itemsQueryable = inspecciones.AsQueryable();
+        }
+        else
+        {
+            toastService.ShowError(resultado.Error.Description);
+        }
+    }
+
+    private void Buscar()
+    {
+        IEnumerable<Inspecciones> resultado = inspecciones;
+
+        if (!string.IsNullOrWhiteSpace(ValorFiltro))
+        {
+            string valor = ValorFiltro.Trim();
+
+            resultado = Filtro switch
+            {
+                "Id" => resultado.Where(i =>
+                    i.InspeccionId.ToString().Contains(valor)),
+
+                "Responsable" => resultado.Where(i =>
+                    (i.Responsable?.UserName ?? string.Empty)
+                        .Contains(valor, StringComparison.OrdinalIgnoreCase)),
+
+                "Estado" => resultado.Where(i =>
+                    i.Estado.Contains(valor, StringComparison.OrdinalIgnoreCase)),
+
+                _ => resultado
+            };
+        }
+
+        itemsQueryable = resultado.AsQueryable();
+    }
+
+    private void VerDetalles(Inspecciones inspeccion)
+    {
+        inspeccionSeleccionada = inspeccion;
+    }
+
+    private void CerrarDetalles()
+    {
+        inspeccionSeleccionada = null;
+    }
+
+    private string ObtenerClaseEstado(string estado)
+    {
+        return estado switch
+        {
+            "Pendiente" => "bg-warning text-dark",
+            "En proceso" => "bg-primary",
+            "Finalizada" => "bg-success",
+            _ => "bg-secondary"
+        };
+    }
+}

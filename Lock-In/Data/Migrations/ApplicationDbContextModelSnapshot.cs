@@ -17,7 +17,7 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261123132759_AgregarUrlNotificaciones";
+    public override string LastMigrationId => "20261126143613_AgregarInspecciones";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -169,6 +169,41 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
                 b.ToTable("Casilleros");
             });
 
+        modelBuilder.Entity("Lock_In.Models.DetalleInspecciones", b =>
+            {
+                var detalleId = b.Property<int>("DetalleId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
+
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(detalleId);
+
+                b.Property<int>("CasilleroId")
+                    .HasColumnType("int");
+
+                b.Property<string>("Condicion")
+                    .IsRequired()
+                    .HasMaxLength(30)
+                    .HasColumnType("nvarchar(30)");
+
+                b.Property<int>("InspeccionId")
+                    .HasColumnType("int");
+
+                b.Property<string>("Observaciones")
+                    .HasMaxLength(500)
+                    .HasColumnType("nvarchar(500)");
+
+                b.Property<bool>("RequiereMantenimiento")
+                    .HasColumnType("bit");
+
+                b.HasKey("DetalleId");
+
+                b.HasIndex("CasilleroId");
+
+                b.HasIndex("InspeccionId");
+
+                b.ToTable("DetalleInspecciones");
+            });
+
         modelBuilder.Entity("Lock_In.Models.Estudiantes", b =>
             {
                 var estudianteId = b.Property<int>("EstudianteId")
@@ -228,6 +263,37 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
                 b.HasIndex("RegistradoPorId");
 
                 b.ToTable("HistorialMovimientos");
+            });
+
+        modelBuilder.Entity("Lock_In.Models.Inspecciones", b =>
+            {
+                var inspeccionId = b.Property<int>("InspeccionId")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
+
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(inspeccionId);
+
+                b.Property<string>("Estado")
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnType("nvarchar(20)");
+
+                b.Property<DateTime>("Fecha")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("Observaciones")
+                    .HasMaxLength(500)
+                    .HasColumnType("nvarchar(500)");
+
+                b.Property<string>("ResponsableId")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
+
+                b.HasKey("InspeccionId");
+
+                b.HasIndex("ResponsableId");
+
+                b.ToTable("Inspecciones");
             });
 
         modelBuilder.Entity("Lock_In.Models.Llaves", b =>
@@ -562,6 +628,25 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
                 b.Navigation("Solicitud");
             });
 
+        modelBuilder.Entity("Lock_In.Models.DetalleInspecciones", b =>
+            {
+                b.HasOne("Lock_In.Models.Casilleros", "Casillero")
+                    .WithMany()
+                    .HasForeignKey("CasilleroId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
+
+                b.HasOne("Lock_In.Models.Inspecciones", "Inspeccion")
+                    .WithMany("Detalles")
+                    .HasForeignKey("InspeccionId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.Navigation("Casillero");
+
+                b.Navigation("Inspeccion");
+            });
+
         modelBuilder.Entity("Lock_In.Models.Estudiantes", b =>
             {
                 b.HasOne("Lock_In.Data.ApplicationUser", "ApplicationUser")
@@ -588,6 +673,17 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
                 b.Navigation("Asignacion");
 
                 b.Navigation("RegistradoPor");
+            });
+
+        modelBuilder.Entity("Lock_In.Models.Inspecciones", b =>
+            {
+                b.HasOne("Lock_In.Data.ApplicationUser", "Responsable")
+                    .WithMany()
+                    .HasForeignKey("ResponsableId")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
+
+                b.Navigation("Responsable");
             });
 
         modelBuilder.Entity("Lock_In.Models.Llaves", b =>
@@ -728,6 +824,11 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
                 b.Navigation("Asignaciones");
 
                 b.Navigation("Solicitudes");
+            });
+
+        modelBuilder.Entity("Lock_In.Models.Inspecciones", b =>
+            {
+                b.Navigation("Detalles");
             });
 
         modelBuilder.Entity("Lock_In.Models.Llaves", b =>

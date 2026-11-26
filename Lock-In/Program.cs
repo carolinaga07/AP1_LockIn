@@ -64,6 +64,7 @@ builder.Services.AddScoped<SolicitudesService>();
 builder.Services.AddScoped<AsignacionesService>();
 builder.Services.AddScoped<NotificacionesService>();
 builder.Services.AddScoped<NotificacionesTiempoRealService>();
+builder.Services.AddScoped<InspeccionesService>();
 builder.Services.AddBlazorBootstrap();
 
 var app = builder.Build();
