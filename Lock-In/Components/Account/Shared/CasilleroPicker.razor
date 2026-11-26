@@ -1,0 +1,111 @@
+﻿
+
+<div class="row g-2 align-items-end mb-3">
+    <div class="col-md-3">
+        <label class="form-label">Casillero</label>
+
+        <InputSelect class="form-select" @bind-Value="CasilleroId">
+            <option value="0">-- Seleccione --</option>
+
+            @foreach (var casillero in Casilleros)
+            {
+                <option value="@casillero.CasilleroId">
+                    Casillero @casillero.Numero
+                </option>
+            }
+        </InputSelect>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Condición</label>
+
+        <InputSelect class="form-select" @bind-Value="Condicion">
+            <option value="Bueno">Bueno</option>
+            <option value="Regular">Regular</option>
+            <option value="Deteriorado">Deteriorado</option>
+        </InputSelect>
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">Observaciones</label>
+
+        <InputText class="form-control"
+                   @bind-Value="Observaciones" />
+    </div>
+
+    <div class="col-md-2">
+        <div class="form-check mb-2">
+            <InputCheckbox class="form-check-input"
+                           @bind-Value="RequiereMantenimiento" />
+
+            <label class="form-check-label">
+                Mantenimiento
+            </label>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <button type="button"
+                class="btn btn-primary w-100"
+                @onclick="Agregar">
+            Agregar
+        </button>
+    </div>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(ErrorMessage))
+{
+    <div class="alert alert-danger">
+        @ErrorMessage
+    </div>
+}
+
+@code {
+    [Parameter]
+    public List<Casilleros> Casilleros { get; set; } = [];
+
+    [Parameter]
+    public EventCallback<DetalleInspecciones> OnCasilleroSelected
+        { get; set; }
+
+    private int CasilleroId { get; set; }
+    private string Condicion { get; set; } = "Bueno";
+    private string? Observaciones { get; set; }
+    private bool RequiereMantenimiento { get; set; }
+    private string? ErrorMessage { get; set; }
+
+    private async Task Agregar()
+    {
+        ErrorMessage = null;
+
+        if (CasilleroId <= 0)
+        {
+            ErrorMessage = "Seleccione un casillero.";
+            return;
+        }
+
+        var seleccionado = Casilleros
+            .FirstOrDefault(c => c.CasilleroId == CasilleroId);
+
+        if (seleccionado == null)
+        {
+            ErrorMessage = "El casillero seleccionado no existe.";
+            return;
+        }
+
+        var detalle = new DetalleInspecciones
+        {
+            CasilleroId = CasilleroId,
+            Condicion = Condicion,
+            Observaciones = Observaciones,
+            RequiereMantenimiento = RequiereMantenimiento
+        };
+
+        await OnCasilleroSelected.InvokeAsync(detalle);
+
+        CasilleroId = 0;
+        Condicion = "Bueno";
+        Observaciones = null;
+        RequiereMantenimiento = false;
+    }
+}

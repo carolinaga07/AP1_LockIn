@@ -1,0 +1,322 @@
+﻿
+@page "/Inspecciones/Registro"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Administrador,Bibliotecario")]
+
+@inject InspeccionesService inspeccionesService
+@inject IDbContextFactory<Contexto> contextFactory
+@inject NavigationManager navigationManager
+@inject ToastService toastService
+
+<PageTitle>Registro de Inspecciones</PageTitle>
+
+<div class="container mt-4 mb-5">
+    <div class="card shadow-lg border-0">
+
+        <div class="card-header text-center py-3">
+            <h5 class="card-title mb-0">
+                Registro de Inspecciones
+            </h5>
+        </div>
+
+        <div class="card-body p-4">
+
+            <EditForm Model="inspeccion"
+                      OnValidSubmit="Guardar">
+
+                <DataAnnotationsValidator />
+               
+
+                <h6 class="fw-bold mb-3">
+                    Datos generales
+                </h6>
+
+                <div class="row g-3 mb-3">
+
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            Número de inspección
+                        </label>
+
+                        <input class="form-control"
+                               value="Nueva"
+                               disabled />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Fecha</label>
+
+                        <InputDate class="form-control"
+                                   @bind-Value="inspeccion.Fecha" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Estado</label>
+
+                        <InputSelect class="form-select"
+                                     @bind-Value="inspeccion.Estado">
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="En proceso">En proceso</option>
+                            <option value="Finalizada">Finalizada</option>
+                        </InputSelect>
+                    </div>
+
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">
+                        Observaciones generales
+                    </label>
+
+                    <InputTextArea class="form-control"
+                                   rows="3"
+                                   @bind-Value="inspeccion.Observaciones" />
+                </div>
+
+                <hr />
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0">
+                        Detalle de Inspección
+                    </h6>
+
+                    <span class="badge bg-primary">
+                        @inspeccion.Detalles.Count casilleros
+                    </span>
+                </div>
+
+                <CasilleroPicker
+                    Casilleros="casillerosDisponibles"
+                    OnCasilleroSelected="AgregarDetalle" />
+
+                <div class="table-responsive mt-4">
+
+                    <QuickGrid Items="DetallesGrid"
+                               Class="table table-bordered table-hover align-middle">
+
+                        <PropertyColumn Property="@(d => d.CasilleroId)"
+                                        Title="ID Casillero"
+                                        Sortable="true" />
+
+                        <TemplateColumn Title="Número" Context="detalle">
+                            @ObtenerNumeroCasillero(detalle.CasilleroId)
+                        </TemplateColumn>
+
+                        <PropertyColumn Property="@(d => d.Condicion)"
+                                        Title="Condición"
+                                        Sortable="true" />
+
+                        <TemplateColumn Title="Observaciones" Context="detalle">
+                            @(string.IsNullOrWhiteSpace(detalle.Observaciones)
+                                ? "Sin observaciones"
+                                : detalle.Observaciones)
+                        </TemplateColumn>
+
+                        <TemplateColumn Title="Mantenimiento" Context="detalle">
+                            @if (detalle.RequiereMantenimiento)
+                            {
+                                <span class="badge bg-danger">
+                                    Sí
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">
+                                    No
+                                </span>
+                            }
+                        </TemplateColumn>
+
+                        <TemplateColumn Title="Acciones"
+                                        Align="Align.Center"
+                                        Context="detalle">
+
+                            <button type="button"
+                                    class="btn btn-outline-danger btn-sm"
+                                    @onclick="() => EliminarDetalle(detalle)">
+                                Eliminar
+                            </button>
+
+                        </TemplateColumn>
+
+                    </QuickGrid>
+
+                    @if (!inspeccion.Detalles.Any())
+                    {
+                        <div class="text-center text-muted py-3">
+                            No se han agregado casilleros.
+                        </div>
+                    }
+
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            disabled="@guardando"
+                            @onclick="Volver">
+                        Cancelar
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-success"
+                            disabled="@guardando">
+
+                        @if (guardando)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            <span>Guardando...</span>
+                        }
+                        else
+                        {
+                            <span>Guardar Inspección</span>
+                        }
+
+                    </button>
+
+                </div>
+
+            </EditForm>
+
+        </div>
+    </div>
+</div>
+
+
+@code {
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private Inspecciones inspeccion { get; set; } = new();
+
+    private List<Casilleros> casilleros { get; set; } = new();
+
+    private bool guardando = false;
+
+    private IQueryable<DetalleInspecciones> DetallesGrid =>
+        inspeccion.Detalles.AsQueryable();
+
+    private List<Casilleros> casillerosDisponibles =>
+        casilleros
+            .Where(c => !inspeccion.Detalles
+                .Any(d => d.CasilleroId == c.CasilleroId))
+            .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var contexto =
+            await contextFactory.CreateDbContextAsync();
+
+        casilleros = await contexto.Casilleros
+            .AsNoTracking()
+            .OrderBy(c => c.Numero)
+            .ToListAsync();
+    }
+
+    private string ObtenerNumeroCasillero(int casilleroId)
+    {
+        var casillero = casilleros
+            .FirstOrDefault(c => c.CasilleroId == casilleroId);
+
+        return casillero?.Numero.ToString() ?? "Desconocido";
+    }
+
+    private void AgregarDetalle(DetalleInspecciones detalle)
+    {
+        if (inspeccion.Detalles.Any(d =>
+            d.CasilleroId == detalle.CasilleroId))
+        {
+            toastService.ShowError(
+                "El casillero ya está agregado.");
+
+            return;
+        }
+
+        inspeccion.Detalles.Add(detalle);
+
+        toastService.ShowSuccess(
+            "Casillero agregado correctamente.");
+    }
+
+    private void EliminarDetalle(DetalleInspecciones detalle)
+    {
+        inspeccion.Detalles.Remove(detalle);
+
+        toastService.ShowError(
+            "Casillero eliminado del detalle.");
+    }
+
+    private async Task Guardar()
+    {
+        if (guardando)
+            return;
+
+        if (!inspeccion.Detalles.Any())
+        {
+            toastService.ShowError(
+                "Debe agregar al menos un casillero.");
+
+            return;
+        }
+
+        if (AuthenticationStateTask == null)
+        {
+            toastService.ShowError(
+                "No se pudo obtener la autenticación.");
+
+            return;
+        }
+
+        guardando = true;
+
+        try
+        {
+            var authState = await AuthenticationStateTask;
+
+            var usuarioId = authState.User
+                .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrWhiteSpace(usuarioId))
+            {
+                toastService.ShowError(
+                    "No se pudo identificar al administrador.");
+
+                return;
+            }
+
+            inspeccion.ResponsableId = usuarioId;
+
+            var resultado =
+                await inspeccionesService.Guardar(inspeccion);
+
+            if (resultado.IsSuccess)
+            {
+                toastService.ShowSuccess(
+                    "Inspección guardada correctamente.");
+
+                navigationManager.NavigateTo("/Inspecciones");
+            }
+            else
+            {
+                toastService.ShowError(
+                    "No se pudo guardar la inspección.");
+            }
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError(
+                $"Error al guardar: {ex.Message}");
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+
+    private void Volver()
+    {
+        navigationManager.NavigateTo("/Inspecciones");
+    }
+}

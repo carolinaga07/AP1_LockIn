@@ -1,0 +1,485 @@
+﻿
+@page "/Inspecciones/Editar/{InspeccionId:int}"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Administrador,Bibliotecario")]
+@inject InspeccionesService inspeccionesService
+@inject IDbContextFactory<Contexto> contextFactory
+@inject NavigationManager Navigation
+@inject ToastService toastService
+
+<PageTitle>Editar Inspección</PageTitle>
+
+@if (cargando)
+{
+    <div class="container mt-4 text-center">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-2">Cargando inspección...</p>
+    </div>
+}
+else if (inspeccion != null)
+{
+    <EditForm Model="inspeccion" OnValidSubmit="Modificar">
+        <DataAnnotationsValidator />
+
+        <div class="container mt-4 mb-5">
+            <div class="card shadow-lg">
+
+                <div class="card-header text-center">
+                    <h5 class="card-title mb-0">
+                        Editar Inspección
+                    </h5>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row mb-3">
+
+                        <div class="col-md-4">
+                            <label class="form-label">
+                                Inspección ID
+                            </label>
+
+                            <input class="form-control"
+                                   value="@inspeccion.InspeccionId"
+                                   disabled />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">
+                                Fecha
+                            </label>
+
+                            <InputDate class="form-control"
+                                       @bind-Value="inspeccion.Fecha" />
+
+                            <ValidationMessage
+                                For="() => inspeccion.Fecha" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">
+                                Estado
+                            </label>
+
+                            <InputSelect class="form-select"
+                                         @bind-Value="inspeccion.Estado">
+
+                                <option value="Pendiente">
+                                    Pendiente
+                                </option>
+
+                                <option value="En proceso">
+                                    En proceso
+                                </option>
+
+                                <option value="Finalizada">
+                                    Finalizada
+                                </option>
+
+                            </InputSelect>
+
+                            <ValidationMessage
+                                For="() => inspeccion.Estado" />
+                        </div>
+
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Observaciones generales
+                        </label>
+
+                        <InputTextArea class="form-control"
+                                       rows="3"
+                                       @bind-Value="inspeccion.Observaciones" />
+                    </div>
+
+                    <hr />
+
+                    <h6 class="fw-bold mb-3">
+                        Agregar Casilleros
+                    </h6>
+
+                    <CasilleroPicker
+                        Casilleros="casillerosDisponibles"
+                        OnCasilleroSelected="Agregar" />
+
+                    <hr />
+
+                    <h6 class="fw-bold mb-3">
+                        Detalle de Inspección
+                    </h6>
+
+                    <QuickGrid Items="DetallesGrid"
+                               Class="table table-hover table-bordered mt-3">
+
+                        <TemplateColumn Title="Casillero"
+                                        Context="detalle">
+
+                            @ObtenerNumeroCasillero(detalle.CasilleroId)
+
+                        </TemplateColumn>
+
+                        <PropertyColumn Property="d => d.Condicion"
+                                        Title="Condición" />
+
+                        <TemplateColumn Title="Observaciones"
+                                        Context="detalle">
+
+                            @(string.IsNullOrWhiteSpace(detalle.Observaciones)
+                                ? "Sin observaciones"
+                                : detalle.Observaciones)
+
+                        </TemplateColumn>
+
+                        <TemplateColumn Title="Mantenimiento"
+                                        Context="detalle">
+
+                            @if (detalle.RequiereMantenimiento)
+                            {
+                                <span class="badge bg-danger">
+                                    Sí
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">
+                                    No
+                                </span>
+                            }
+
+                        </TemplateColumn>
+
+                        <TemplateColumn Title="Opciones"
+                                        Context="detalle">
+
+                            <button type="button"
+                                    class="btn btn-outline-danger bi bi-trash"
+                                    @onclick="() => Quitar(detalle)">
+                            </button>
+
+                        </TemplateColumn>
+
+                    </QuickGrid>
+
+                    @if (!inspeccion.Detalles.Any())
+                    {
+                        <div class="alert alert-warning mt-3">
+                            No hay casilleros agregados.
+                        </div>
+                    }
+
+                    <p class="text-end fw-bold mt-3">
+                        Total de casilleros:
+                        @inspeccion.Detalles.Count
+                    </p>
+
+                    <p class="text-end fw-bold">
+                        Requieren mantenimiento:
+                        @inspeccion.Detalles.Count(d => d.RequiereMantenimiento)
+                    </p>
+
+                </div>
+
+                <div class="card-footer text-center">
+
+                    <a href="/Inspecciones"
+                       class="btn btn-secondary">
+                        Volver
+                    </a>
+
+                    @if (inspeccion.Estado != "Finalizada")
+                    {
+                        <button type="button"
+                                class="btn btn-danger bi bi-trash"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalEliminar"
+                                disabled="@guardando">
+                            Eliminar
+                        </button>
+                    }
+
+                    <button type="submit"
+                            class="btn btn-primary bi bi-floppy"
+                            disabled="@guardando">
+
+                        @(guardando ? "Guardando..." : "Guardar")
+
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </EditForm>
+
+    <div class="modal fade"
+         id="modalEliminar"
+         tabindex="-1"
+         aria-labelledby="modalEliminarTitulo"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title"
+                        id="modalEliminarTitulo">
+                        Confirmar Eliminación
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal">
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <p>
+                        ¿Está seguro de que desea eliminar
+                        esta inspección?
+                    </p>
+
+                    <p>
+                        <strong>Inspección:</strong>
+                        @inspeccion.InspeccionId
+                    </p>
+
+                    <p>
+                        <strong>Fecha:</strong>
+                        @inspeccion.Fecha.ToShortDateString()
+                    </p>
+
+                    <p>
+                        <strong>Estado:</strong>
+                        @inspeccion.Estado
+                    </p>
+
+                    <p>
+                        <strong>Casilleros:</strong>
+                        @inspeccion.Detalles.Count
+                    </p>
+
+                    <div class="alert alert-danger">
+                        Esta acción eliminará la inspección
+                        y todos sus detalles asociados.
+                        No se podrá deshacer.
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                            disabled="@eliminando">
+                        Cancelar
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-danger"
+                            disabled="@eliminando"
+                            @onclick="Eliminar">
+
+                        @(eliminando ? "Eliminando..." : "Eliminar")
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int InspeccionId { get; set; }
+
+    private Inspecciones inspeccion = new();
+
+    private List<Casilleros> casilleros = new();
+
+    private bool cargando = true;
+    private bool guardando = false;
+    private bool eliminando = false;
+
+    private IQueryable<DetalleInspecciones> DetallesGrid =>
+        inspeccion?.Detalles.AsQueryable()
+        ?? Enumerable.Empty<DetalleInspecciones>().AsQueryable();
+
+    private List<Casilleros> casillerosDisponibles =>
+        casilleros
+            .Where(c => inspeccion == null ||
+                !inspeccion.Detalles.Any(
+                    d => d.CasilleroId == c.CasilleroId))
+            .ToList();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        cargando = true;
+
+        try
+        {
+            await using var contexto =
+                await contextFactory.CreateDbContextAsync();
+
+            casilleros = await contexto.Casilleros
+                .AsNoTracking()
+                .OrderBy(c => c.Numero)
+                .ToListAsync();
+
+            var resultado =
+                await inspeccionesService.Buscar(InspeccionId);
+
+            if (resultado.IsSuccess && resultado.Value != null)
+            {
+                inspeccion = resultado.Value;
+            }
+            else
+            {
+                inspeccion = null;
+
+                toastService.ShowError(
+                    "Inspección no encontrada");
+
+                Navigation.NavigateTo("/Inspecciones");
+            }
+        }
+        catch (Exception ex)
+        {
+            inspeccion = null;
+
+            toastService.ShowError(
+                $"Error al cargar la inspección: {ex.Message}");
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private string ObtenerNumeroCasillero(int casilleroId)
+    {
+        var casillero = casilleros
+            .FirstOrDefault(c => c.CasilleroId == casilleroId);
+
+        return casillero?.Numero.ToString() ?? "Desconocido";
+    }
+
+    private void Agregar(DetalleInspecciones detalle)
+    {
+        if (inspeccion == null)
+            return;
+
+        if (inspeccion.Detalles.Any(d =>
+            d.CasilleroId == detalle.CasilleroId))
+        {
+            toastService.ShowError(
+                "Este casillero ya está agregado");
+            return;
+        }
+
+        inspeccion.Detalles.Add(detalle);
+    }
+
+    private void Quitar(DetalleInspecciones detalle)
+    {
+        if (inspeccion == null)
+            return;
+
+        inspeccion.Detalles.Remove(detalle);
+    }
+
+    private async Task Modificar()
+    {
+        if (inspeccion == null || guardando)
+            return;
+
+        if (!inspeccion.Detalles.Any())
+        {
+            toastService.ShowError(
+                "Debe agregar al menos un casillero");
+            return;
+        }
+
+        guardando = true;
+
+        try
+        {
+            var resultado =
+                await inspeccionesService.Guardar(inspeccion);
+
+            if (resultado.IsSuccess)
+            {
+                toastService.ShowSuccess(
+                    "Inspección modificada correctamente");
+
+                Navigation.NavigateTo("/Inspecciones");
+            }
+            else
+            {
+                toastService.ShowError(
+                    resultado.Error.Description);
+            }
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError(
+                $"Error al modificar: {ex.Message}");
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+
+    private async Task Eliminar()
+    {
+        if (inspeccion == null || eliminando)
+            return;
+
+        if (inspeccion.Estado == "Finalizada")
+        {
+            toastService.ShowError(
+                "No se puede eliminar una inspección finalizada");
+            return;
+        }
+
+        eliminando = true;
+
+        try
+        {
+            var resultado =
+                await inspeccionesService.Eliminar(InspeccionId);
+
+            if (resultado.IsSuccess)
+            {
+                toastService.ShowSuccess(
+                    "Inspección eliminada correctamente");
+
+                Navigation.NavigateTo("/Inspecciones");
+            }
+            else
+            {
+                toastService.ShowError(
+                    resultado.Error.Description);
+            }
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError(
+                $"Error al eliminar: {ex.Message}");
+        }
+        finally
+        {
+            eliminando = false;
+        }
+    }
+}
