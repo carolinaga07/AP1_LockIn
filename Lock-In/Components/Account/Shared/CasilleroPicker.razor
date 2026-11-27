@@ -20,9 +20,10 @@
         <label class="form-label">Condición</label>
 
         <InputSelect class="form-select" @bind-Value="Condicion">
-            <option value="Bueno">Bueno</option>
-            <option value="Regular">Regular</option>
-            <option value="Deteriorado">Deteriorado</option>
+            <option value="@CondicionCasillero.Bueno">Bueno</option>
+            <option value="@CondicionCasillero.Regular">Regular</option>
+            <option value="@CondicionCasillero.Deteriorado">Deteriorado</option>
+            <option value="@CondicionCasillero.Inaccesible">Inaccesible</option>
         </InputSelect>
     </div>
 
@@ -69,7 +70,7 @@
         { get; set; }
 
     private int CasilleroId { get; set; }
-    private string Condicion { get; set; } = "Bueno";
+    private CondicionCasillero Condicion { get; set; } = CondicionCasillero.Bueno;
     private string? Observaciones { get; set; }
     private bool RequiereMantenimiento { get; set; }
     private string? ErrorMessage { get; set; }
@@ -104,7 +105,7 @@
         await OnCasilleroSelected.InvokeAsync(detalle);
 
         CasilleroId = 0;
-        Condicion = "Bueno";
+        Condicion = CondicionCasillero.Bueno;
         Observaciones = null;
         RequiereMantenimiento = false;
     }

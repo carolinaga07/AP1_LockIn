@@ -1,4 +1,4 @@
-using Lock_In.Data;
+using Lock_In.Core.Entities;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 

@@ -1,7 +1,5 @@
 ﻿@page "/auth"
 
-@using Microsoft.AspNetCore.Authorization
-
 @attribute [Authorize]
 
 <PageTitle>Auth</PageTitle>
@@ -12,7 +10,6 @@
     Hello @context.User.Identity?.Name!
 </AuthorizeView>
 
-@using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <h4>Diagnóstico de usuario</h4>

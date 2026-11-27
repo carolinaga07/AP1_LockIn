@@ -1,6 +1,6 @@
 using Lock_In.Components.Account.Pages;
 using Lock_In.Components.Account.Pages.Manage;
-using Lock_In.Data;
+using Lock_In.Core.Entities;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;

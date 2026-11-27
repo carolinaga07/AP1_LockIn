@@ -1,6 +1,7 @@
-using Lock_In.Data;
+using Lock_In.Core.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using ApplicationUser = Lock_In.Core.Entities.ApplicationUser;
 
 namespace Lock_In.Components.Account
 {
