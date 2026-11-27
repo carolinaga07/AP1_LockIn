@@ -8,32 +8,54 @@ using Lock_In.Infrastructure.Context;
 namespace Lock_In.Infrastructure.Services;
     public class AsignacionesService(IDbContextFactory<Contexto> contextFactory) : IServiceResult<Asignaciones, int>
     {
-        public async Task<Result> Guardar(Asignaciones asignacion)
+
+    public async Task<Result> Guardar(Asignaciones asignacion)
+    {
+        if (asignacion.AsignacionId == 0)
         {
-            if (asignacion.AsignacionId == 0)
-            {
-                return Result.Failure(new Error("Error al Crear", "No se pudo generar una asignacion."));
-            }
-
-            await using var contexto = await contextFactory.CreateDbContextAsync();
-
-            var existe = await contexto.Asignaciones.FirstOrDefaultAsync(a => a.AsignacionId == asignacion.AsignacionId);
-            
-            if(existe == null)
-            {
-                return Result.Failure(new Error("Asignación no encontrada", "La asignación indicada no existe"));
-
-            }
-
-            existe.FechaEntrega = asignacion.FechaEntrega;
-            existe.FechaDevolucion = asignacion.FechaDevolucion;
-            existe.Estado = asignacion.Estado;
-
-            var guardado = await contexto.SaveChangesAsync() > 0;
-            return guardado ? Result.Success() : Result.Failure(new Error("Error al Guardar", "No se pudo guardar la asignación."));
+            return Result.Failure(
+                new Error(
+                    "Error al Crear",
+                    "No se pudo generar una asignación."));
         }
 
-        public async Task<Result<Asignaciones?>> Buscar(int asignacionId)
+        await using var contexto =
+            await contextFactory.CreateDbContextAsync();
+
+        var existe = await contexto.Asignaciones
+            .FirstOrDefaultAsync(a =>
+                a.AsignacionId == asignacion.AsignacionId);
+
+        if (existe == null)
+        {
+            return Result.Failure(
+                new Error(
+                    "Asignación no encontrada",
+                    "La asignación indicada no existe."));
+        }
+
+        // Impedir modificaciones directas del ciclo de vida.
+        if (existe.Estado != asignacion.Estado ||
+            existe.FechaEntrega != asignacion.FechaEntrega ||
+            existe.FechaDevolucion != asignacion.FechaDevolucion)
+        {
+            return Result.Failure(
+                new Error(
+                    "Modificación no permitida",
+                    "El estado y las fechas de entrega o devolución " +
+                    "solo pueden modificarse mediante los métodos " +
+                    "correspondientes."));
+        }
+
+        return Result.Failure(
+            new Error(
+                "Sin cambios permitidos",
+                "No hay propiedades administrativas editables " +
+                "mediante este método."));
+    }
+
+
+    public async Task<Result<Asignaciones?>> Buscar(int asignacionId)
         {
            await using var contexto = await contextFactory.CreateDbContextAsync();
 
@@ -132,11 +154,23 @@ namespace Lock_In.Infrastructure.Services;
             {
                 return Result.Failure(new Error("Asignación no encontrada", "La asignación no existe."));
             }
-
+  
             if (asignacion.Estado == EstadoAsignacion.Finalizada)
             {
-                return Result.Failure(new Error("Ya finalizada", "La asignación ya se encuentra finalizada."));
+                return Result.Failure(
+                new Error(
+                    "Ya finalizada",
+                    "La asignación ya se encuentra finalizada."));
             }
+
+            if (asignacion.Estado != EstadoAsignacion.Activa)
+            {
+            return Result.Failure(
+                new Error(
+                    "Estado inválido",
+                    "Solo se pueden finalizar asignaciones activas."));
+            }
+
 
             asignacion.Estado = EstadoAsignacion.Finalizada;
             asignacion.FechaDevolucion = DateTime.UtcNow;

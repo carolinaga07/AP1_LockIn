@@ -365,26 +365,36 @@ public class SolicitudesService(
 
 
     public async Task<Result> Rechazar(int solicitudId, string revisadoPor, string motivo)
-    {   
+    {
         await using var contexto = await contextFactory.CreateDbContextAsync();
+
         if (string.IsNullOrWhiteSpace(motivo))
         {
             return Result.Failure(
-             new Error(
-            "MOTIVO_OBLIGATORIO",
-            "Debe indicar el motivo del rechazo."
-              )
-            );
+                new Error(
+                    "MOTIVO_OBLIGATORIO",
+                    "Debe indicar el motivo del rechazo."));
         }
 
-        
+        var revisorAutorizado = await contexto.Users
+         .AnyAsync(u =>
+         u.Id == revisadoPor &&
+         contexto.UserRoles.Any(ur =>
+             ur.UserId == u.Id &&
+             contexto.Roles.Any(r =>
+                 r.Id == ur.RoleId &&
+                 (r.Name == "Administrador" ||
+                  r.Name == "Bibliotecario"))));
 
-        var revisorExiste = await contexto.Users.AnyAsync(u => u.Id == revisadoPor);
-
-        if (!revisorExiste)
+        if (!revisorAutorizado)
         {
-            return Result.Success(false);
+            return Result.Failure(
+                new Error(
+                    "REVISOR_NO_AUTORIZADO",
+                    "El usuario no tiene permisos para rechazar solicitudes."
+                ));
         }
+
 
         var solicitud = await contexto.Solicitudes
             .FirstOrDefaultAsync(s => s.SolicitudId == solicitudId);
