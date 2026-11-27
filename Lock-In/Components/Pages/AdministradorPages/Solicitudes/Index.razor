@@ -1,5 +1,6 @@
 ﻿@page "/Solicitudes"
 @rendermode InteractiveServer
+@implements IDisposable
 @attribute [Authorize(Roles = "Administrador,Bibliotecario")]
 @inject SolicitudesService solicitudesService
 @inject ToastService toastService
@@ -306,13 +307,45 @@
 
     protected override async Task OnInitializedAsync()
     {
+        authenticationStateProvider.AuthenticationStateChanged +=
+            AuthenticationStateChanged;
+
         var authState =
             await authenticationStateProvider.GetAuthenticationStateAsync();
 
-        usuarioId = authState.User.FindFirstValue(
-            ClaimTypes.NameIdentifier);
+        ActualizarUsuario(authState);
 
         await CargarSolicitudes(s => true);
+    }
+
+    private void AuthenticationStateChanged(
+        Task<AuthenticationState> authenticationStateTask)
+    {
+        _ = ActualizarUsuarioAsync(authenticationStateTask);
+    }
+
+    private async Task ActualizarUsuarioAsync(
+        Task<AuthenticationState> authenticationStateTask)
+    {
+        var authState = await authenticationStateTask;
+
+        await InvokeAsync(() =>
+        {
+            ActualizarUsuario(authState);
+            StateHasChanged();
+        });
+    }
+
+    private void ActualizarUsuario(AuthenticationState authState)
+    {
+        usuarioId = authState.User.FindFirstValue(
+            ClaimTypes.NameIdentifier);
+    }
+
+    public void Dispose()
+    {
+        authenticationStateProvider.AuthenticationStateChanged -=
+            AuthenticationStateChanged;
     }
 
     private async Task CargarSolicitudes(
@@ -365,8 +398,19 @@
         SolicitudSeleccionada = solicitud;
         errorModal = null;
 
-        await JS.InvokeVoidAsync(
-            "abrirModalBootstrap", "modalAprobar");
+        try
+        {
+            await JS.InvokeVoidAsync(
+                "abrirModalBootstrap", "modalAprobar");
+        }
+        catch (JSException)
+        {
+            errorModal = "No se pudo abrir el modal de aprobación.";
+        }
+        catch (JSDisconnectedException)
+        {
+            errorModal = "La conexión con la aplicación se perdió.";
+        }
     }
 
     private async Task SeleccionarRechazar(Solicitudes solicitud)
@@ -375,8 +419,19 @@
         MotivoRechazo = string.Empty;
         errorModal = null;
 
-        await JS.InvokeVoidAsync(
-            "abrirModalBootstrap", "modalRechazar");
+        try
+        {
+            await JS.InvokeVoidAsync(
+                "abrirModalBootstrap", "modalRechazar");
+        }
+        catch (JSException)
+        {
+            errorModal = "No se pudo abrir el modal de rechazo.";
+        }
+        catch (JSDisconnectedException)
+        {
+            errorModal = "La conexión con la aplicación se perdió.";
+        }
     }
 
     private async Task ConfirmarAprobacion()
