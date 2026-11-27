@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Lock_In.Migrations;
+namespace Lock_In.Infrastructure.Migrations;
 
 /// <inheritdoc />
 public partial class _20261123040338_Azure : Migration

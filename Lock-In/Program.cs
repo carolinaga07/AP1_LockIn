@@ -1,11 +1,12 @@
 using Lock_In.Components;
 using Lock_In.Components.Account;
-using Lock_In.Context;
-using Lock_In.Data;
-using Lock_In.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Lock_In.Infrastructure.Context;
+using Lock_In.Core.Entities;
+using Lock_In.Infrastructure.Services;
+using Lock_In.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,7 +34,9 @@ var connectionString = builder.Configuration.GetConnectionString("ConStr") ?? th
 //Cconexion con el Contexto
 builder.Services.AddDbContextFactory<Contexto>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("ConStr")));
+        connectionString,
+        sql => sql.MigrationsAssembly(
+            typeof(Contexto).Assembly.GetName().Name)));
 //Roles de Identity
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
     {
@@ -68,31 +71,6 @@ builder.Services.AddScoped<InspeccionesService>();
 builder.Services.AddBlazorBootstrap();
 
 var app = builder.Build();
-
-//Roles
-using(var scope = app.Services.CreateScope())
-{
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    string[] roles =
-    {
-        "Administrador",
-        "Bibliotecario",
-        "Estudiante"
-    };
-
-    foreach(var rol in roles)
-    {
-        if(!await roleManager.RoleExistsAsync(rol))
-        {
-            var resultado = await roleManager.CreateAsync(new IdentityRole(rol));
-
-            if (!resultado.Succeeded)
-            {
-                throw new InvalidOperationException($"No se pudo crear el rol{rol}.");
-            }
-        }
-    }
-}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

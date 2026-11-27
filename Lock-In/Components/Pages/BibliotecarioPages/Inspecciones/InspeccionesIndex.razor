@@ -170,8 +170,8 @@
             </label>
 
             <label>
-                <strong>Finalizadas:</strong>
-                @itemsQueryable.Count(i => i.Estado == "Finalizada")
+                <strong>Completadas:</strong>
+                @itemsQueryable.Count(i => i.Estado == EstadoInspeccion.Completada)
             </label>
         </div>
 
@@ -231,7 +231,7 @@
                         .Contains(valor, StringComparison.OrdinalIgnoreCase)),
 
                 "Estado" => resultado.Where(i =>
-                    i.Estado.Contains(valor, StringComparison.OrdinalIgnoreCase)),
+                    i.Estado.ToString().Contains(valor, StringComparison.OrdinalIgnoreCase)),
 
                 _ => resultado
             };
@@ -250,13 +250,14 @@
         inspeccionSeleccionada = null;
     }
 
-    private string ObtenerClaseEstado(string estado)
+    private string ObtenerClaseEstado(EstadoInspeccion estado)
     {
         return estado switch
         {
-            "Pendiente" => "bg-warning text-dark",
-            "En proceso" => "bg-primary",
-            "Finalizada" => "bg-success",
+            EstadoInspeccion.Pendiente => "bg-warning text-dark",
+            EstadoInspeccion.EnProceso => "bg-primary",
+            EstadoInspeccion.Completada => "bg-success",
+            EstadoInspeccion.Cancelada => "bg-danger",
             _ => "bg-secondary"
         };
     }

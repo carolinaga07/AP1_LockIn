@@ -64,16 +64,20 @@ else if (inspeccion != null)
                             <InputSelect class="form-select"
                                          @bind-Value="inspeccion.Estado">
 
-                                <option value="Pendiente">
+                                <option value="@EstadoInspeccion.Pendiente">
                                     Pendiente
                                 </option>
 
-                                <option value="En proceso">
+                                <option value="@EstadoInspeccion.EnProceso">
                                     En proceso
                                 </option>
 
-                                <option value="Finalizada">
-                                    Finalizada
+                                <option value="@EstadoInspeccion.Completada">
+                                    Completada
+                                </option>
+
+                                <option value="@EstadoInspeccion.Cancelada">
+                                    Cancelada
                                 </option>
 
                             </InputSelect>
@@ -188,7 +192,7 @@ else if (inspeccion != null)
                         Volver
                     </a>
 
-                    @if (inspeccion.Estado != "Finalizada")
+                    @if (inspeccion.Estado != EstadoInspeccion.Completada)
                     {
                         <button type="button"
                                 class="btn btn-danger bi bi-trash"
@@ -445,10 +449,10 @@ else if (inspeccion != null)
         if (inspeccion == null || eliminando)
             return;
 
-        if (inspeccion.Estado == "Finalizada")
+        if (inspeccion.Estado == EstadoInspeccion.Completada)
         {
             toastService.ShowError(
-                "No se puede eliminar una inspección finalizada");
+                "No se puede eliminar una inspección completada");
             return;
         }
 

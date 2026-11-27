@@ -1,0 +1,28 @@
+﻿
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Lock_In.Core.Entities;
+
+public class HistorialMovimientos
+{
+    [Key]
+    public int HistorialMovimientoId { get; set; }
+
+    public int AsignacionId { get; set; }
+
+    [ForeignKey(nameof(AsignacionId))]
+    public Asignaciones Asignacion { get; set; } = null!;
+
+    public string TipoMovimiento { get; set; } = string.Empty;
+
+    public DateTime Fecha { get; set; } = DateTime.UtcNow;
+
+    public string? Observacion { get; set; }
+
+    public string? RegistradoPorId { get; set; }
+
+    [ForeignKey(nameof(RegistradoPorId))]
+    [InverseProperty(nameof(ApplicationUser.MovimientosRegistrados))]
+    public ApplicationUser? RegistradoPor { get; set; }
+}

@@ -1,4 +1,6 @@
 <Solution>
+  <Project Path="Lock-In.Core/Lock-In.Core.csproj" Id="207f242d-8d54-4866-823b-d21a74571bdb" />
+  <Project Path="Lock-In.Infrastructure/Lock-In.Infrastructure.csproj" Id="3449d00b-8151-4ee9-be99-788d84c6f6e5" />
   <Project Path="Lock-In/Lock-In.csproj" />
   <Project Path="LockinTest/LockinTest.csproj" Id="1ab92823-5029-4f87-85b3-06f220e25515" />
 </Solution>
