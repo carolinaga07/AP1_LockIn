@@ -152,7 +152,7 @@
 </div>
 
 @code {
-    IQueryable<Asignaciones?> itemsQueryable;
+    private IQueryable<Asignaciones> itemsQueryable = Enumerable.Empty<Asignaciones>().AsQueryable();
 
     public string Filtro { get; set; } = string.Empty;
     public string ValorFiltro { get; set; } = string.Empty;

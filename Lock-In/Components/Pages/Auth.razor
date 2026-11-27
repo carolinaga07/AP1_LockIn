@@ -10,8 +10,6 @@
     Hello @context.User.Identity?.Name!
 </AuthorizeView>
 
-@inject AuthenticationStateProvider AuthenticationStateProvider
-
 <h4>Diagnóstico de usuario</h4>
 
 <p>Usuario: @nombreUsuario</p>
@@ -20,16 +18,22 @@
 <p>Roles: @roles</p>
 
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+
     private string nombreUsuario = "";
     private bool autenticado;
     private bool esEstudiante;
     private string roles = "";
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        var estado = await AuthenticationStateProvider
-            .GetAuthenticationStateAsync();
+        if (AuthenticationStateTask is null)
+        {
+            return;
+        }
 
+        var estado = await AuthenticationStateTask;
         var usuario = estado.User;
 
         nombreUsuario = usuario.Identity?.Name ?? "Sin usuario";

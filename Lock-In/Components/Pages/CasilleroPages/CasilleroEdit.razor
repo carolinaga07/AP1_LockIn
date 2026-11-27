@@ -1,6 +1,6 @@
 ﻿@page "/Casilleros/Edit/{CasilleroId:int}"
 @inject CasillerosService casillerosService
-@inject NavigationManager navigationManager
+@inject NavigationManager Navigation
 @inject ToastService toastService
 
 <PageTitle>Editar Casillero</PageTitle>
@@ -94,7 +94,16 @@
     protected override async Task OnInitializedAsync()
     {
         var result = await casillerosService.Buscar(CasilleroId);
-        Casillero = result.Value;
+
+        if (result.IsSuccess && result.Value is not null)
+        {
+            Casillero = result.Value;
+        }
+        else
+        {
+            toastService.ShowError("Casillero no encontrado");
+            Navigation.NavigateTo("/Casilleros");
+        }
     }
 
     public async Task Modificar()
@@ -104,7 +113,7 @@
         result.OnSuccess(() =>
          {
              toastService.ShowSuccess("¡Casillero modificado exitosamente!");
-             navigationManager.NavigateTo("/Casilleros/Index");
+             Navigation.NavigateTo("/Casilleros/Index");
          });
 
         result.OnFailure(() => toastService.ShowError("Error al modificar el casillero."));
@@ -150,7 +159,7 @@
         result.OnSuccess(() =>
         {
             toastService.ShowSuccess("¡Casillero eliminado exitosamente!");
-            navigationManager.NavigateTo("/Casilleros/Index");
+            Navigation.NavigateTo("/Casilleros/Index");
         });
 
         result.OnFailure(() => toastService.ShowError("Error al eliminar el casillero."));

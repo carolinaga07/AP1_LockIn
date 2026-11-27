@@ -279,8 +279,8 @@ public class SolicitudesService(
 
         if (llave is null)
         {
-            new Error("Llave no disponible",
-                "El casillero no tiene una llave disponible.");
+            return Result.Failure(new Error("Llave no disponible",
+                "El casillero no tiene una llave disponible."));
         }
 
         int llaveId = llave.LlaveId;

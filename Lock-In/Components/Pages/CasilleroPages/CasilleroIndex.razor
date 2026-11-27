@@ -51,51 +51,50 @@
              </div>
             
             <div class="table-responsive mt-3">
+                @if (itemsQueryable is not null)
+                {
+                    <QuickGrid Items="@itemsQueryable"
+                    Class="table table-hover align-middle text-center mt-3">
 
-                <QuickGrid Items="@itemsQueryable"
-                           Class="table table-hover align-middle text-center mt-3">
+                        <PropertyColumn Property="@(c => c.CasilleroId)"
+                        Title="ID"
+                        Sortable="true" />
 
-                    <PropertyColumn Property="@(c => c.CasilleroId)"
-                                    Title="ID"
-                                    Sortable="true" />
+                        <PropertyColumn Property="@(c => c.Numero)"
+                        Title="Número"
+                        Sortable="true" />
 
-                    <PropertyColumn Property="@(c => c.Numero)"
-                                    Title="Número"
-                                    Sortable="true" />
+                        <PropertyColumn Property="@(c => c.Fila)"
+                        Title="Fila"
+                        Sortable="true" />
 
-                    <PropertyColumn Property="@(c => c.Fila)"
-                                    Title="Fila"
-                                    Sortable="true" />
+                        <TemplateColumn Title="Estado">
+                            <span class="badge @ObtenerClaseEstado(context.Estado) px-3 py-2">
+                                @context.Estado
+                            </span>
+                        </TemplateColumn>
 
-                    <TemplateColumn Title="Estado">
-                        <span class="badge @ObtenerClaseEstado(context.Estado) px-3 py-2">
-                            @context.Estado
-                        </span>
-                    </TemplateColumn>
-
-                    <TemplateColumn Title="Llave">
-                        <span class="badge @(context.LlaveDisponible
+                        <TemplateColumn Title="Llave">
+                            <span class="badge @(context.LlaveDisponible
                               ? "bg-success"
                               : "bg-danger") px-3 py-2">
 
-                            @(context.LlaveDisponible
-                                ? "Disponible"
-                                : "No disponible")
-                        </span>
-                    </TemplateColumn>
+                                @( context.LlaveDisponible )
+                                                    </span>
+                        </TemplateColumn>
 
-                    <TemplateColumn Title="Opciones">
-                        <div class="d-flex justify-content-center gap-2">
-                            <a href="/Casilleros/Edit/@context.CasilleroId"
-                               class="btn btn-outline-primary btn-sm"
-                               title="Editar casillero">
+                         <TemplateColumn Title="Opciones">
+                           <div class="d-flex justify-content-center gap-2">
+                              <a href="/Casilleros/Edit/@context.CasilleroId"
+                                class="btn btn-outline-primary btn-sm"
+                                 title="Editar casillero">
                                 <i class="bi bi-pencil-square"></i>
-                            </a>
-                        </div>
-                    </TemplateColumn>
+                              </a>
+                           </div>
+                         </TemplateColumn>
 
-                </QuickGrid>
-
+                    </QuickGrid>
+                }
             </div>
 
         </div>
@@ -116,7 +115,7 @@
 </div>
 
 @code {
-    private IQueryable<Casilleros> itemsQueryable;
+    private IQueryable<Casilleros>? itemsQueryable;
     public string Filtro { get; set; } = string.Empty;
     public string ValorFiltro { get; set; } = string.Empty;
 

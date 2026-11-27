@@ -1,6 +1,7 @@
 ﻿@page "/"
 @page "/Casilleros/Diagrama"
 @rendermode InteractiveServer
+@implements IDisposable
 @attribute [Authorize(Roles ="Administrador,Bibliotecario,Estudiante")]
 
 @inject CasillerosService casillerosService
@@ -168,11 +169,39 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await CargarCasilleros();
+        authenticationStateProvider.AuthenticationStateChanged += AuthenticationStateChanged;
+
         var authState = await authenticationStateProvider.GetAuthenticationStateAsync();
+        ActualizarEstadoAutenticacion(authState);
+
+        await CargarCasilleros();
+    }
+
+    private void AuthenticationStateChanged(Task<AuthenticationState> authenticationStateTask)
+    {
+        _ = ActualizarEstadoAutenticacionAsync(authenticationStateTask);
+    }
+
+    private async Task ActualizarEstadoAutenticacionAsync(Task<AuthenticationState> authenticationStateTask)
+    {
+        var authState = await authenticationStateTask;
+
+        await InvokeAsync(() =>
+        {
+            ActualizarEstadoAutenticacion(authState);
+            StateHasChanged();
+        });
+    }
+
+    private void ActualizarEstadoAutenticacion(AuthenticationState authState)
+    {
         EsEstudiante = authState.User.IsInRole("Estudiante");
         usuarioId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        await CargarCasilleros();
+    }
+
+    public void Dispose()
+    {
+        authenticationStateProvider.AuthenticationStateChanged -= AuthenticationStateChanged;
     }
 
     private async Task CargarCasilleros()

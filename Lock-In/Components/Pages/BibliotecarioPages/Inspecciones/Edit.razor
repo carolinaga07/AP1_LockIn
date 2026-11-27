@@ -306,9 +306,9 @@ else if (inspeccion != null)
     [Parameter]
     public int InspeccionId { get; set; }
 
-    private Inspecciones inspeccion = new();
+    private Inspecciones? inspeccion { get; set; } = new Inspecciones();
 
-    private List<Casilleros> casilleros = new();
+    private List<Casilleros> casilleros { get; set; } = new List<Casilleros>();
 
     private bool cargando = true;
     private bool guardando = false;

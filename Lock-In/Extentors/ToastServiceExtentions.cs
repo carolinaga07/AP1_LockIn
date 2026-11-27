@@ -4,7 +4,7 @@ namespace Lock_In.Extentors;
 public static class ToastServiceExtentions
 {
     public static ToastMessage ShowToast(this ToastService toastService, ToastType toastType,
-    string title, string customMessage = null)
+    string title, string? customMessage = null)
     {
         var message = new ToastMessage()
         {
@@ -16,13 +16,13 @@ public static class ToastServiceExtentions
         return message;
     }
 
-    public static ToastMessage ShowSuccess(this ToastService toastService, string customMessage = null,
+    public static ToastMessage ShowSuccess(this ToastService toastService, string? customMessage = null,
         string title = "Exito")
     {
         return toastService.ShowToast(ToastType.Success, title, customMessage);
     }
 
-    public static ToastMessage ShowError(this ToastService toastService, string customMessage = null,
+    public static ToastMessage ShowError(this ToastService toastService, string? customMessage = null,
         string title = "Error")
     {
         return toastService.ShowToast(ToastType.Danger, title, customMessage);
